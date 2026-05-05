@@ -102,8 +102,15 @@ function generaVerbale() {
         }
     }
 
-    let ribassoSuComputo = ((computoUfficio - m1.totale) / computoUfficio) * 100;
-    testo += `Si segnala che la miglior offerta presenta uno scostamento di circa il ${Math.round(ribassoSuComputo)}% in meno rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+    // LOGICA ALLINEAMENTO COMPUTO UFFICIO (+/- 200 Euro)
+    let differenzaAssoluta = Math.abs(computoUfficio - m1.totale);
+    
+    if (differenzaAssoluta < 200) {
+        testo += `Si segnala che la miglior offerta è risultata essere allineata al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+    } else {
+        let ribassoSuComputo = ((computoUfficio - m1.totale) / computoUfficio) * 100;
+        testo += `Si segnala che la miglior offerta presenta uno scostamento di circa il ${Math.round(ribassoSuComputo)}% in meno rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+    }
     
     if (scostamento > 5) {
         let assegnatario = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `alla ditta ${m1.nomeCaps}`;
