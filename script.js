@@ -1,56 +1,3 @@
-function toggleInterfaccia() {
-    const tipo = document.getElementById('tipo-globale').value;
-    for (let i = 1; i <= 3; i++) {
-        const oneriCont = document.getElementById(`oneri-container-${i}`);
-        const titoloCont = document.getElementById(`titolo-container-${i}`);
-        if (oneriCont) oneriCont.style.display = (tipo === "Il professionista") ? 'flex' : 'none';
-        if (titoloCont) titoloCont.style.display = (tipo === "Il professionista") ? 'block' : 'none';
-        calcolaTotale(i);
-    }
-}
-
-function calcolaTotale(id) {
-    const box = document.getElementById(`box-${id}`);
-    if (!box) return;
-    const tipo = document.getElementById('tipo-globale').value;
-    const imponibile = parseFloat(box.querySelector('.imponibile').value) || 0;
-    const pIva = parseFloat(box.querySelector('.perc-iva').value) || 0;
-    const totaleField = box.querySelector('.totale');
-
-    if (tipo === "Il professionista") {
-        const pOneri = parseFloat(box.querySelector('.perc-oneri').value) || 0;
-        const oneri = imponibile * (pOneri / 100);
-        const imponibilePiuOneri = imponibile + oneri;
-        const iva = imponibilePiuOneri * (pIva / 100);
-        totaleField.value = (imponibilePiuOneri + iva).toFixed(2);
-    } else {
-        const iva = imponibile * (pIva / 100);
-        totaleField.value = (imponibile + iva).toFixed(2);
-    }
-}
-
-function formatEuro(valore) {
-    return new Intl.NumberFormat('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valore);
-}
-
-function generaSingola(id) {
-    const box = document.getElementById(`box-${id}`);
-    const tipo = document.getElementById('tipo-globale').value;
-    const nomeRaw = box.querySelector('.nome').value.trim() || `SOGGETTO ${id}`;
-    const nomeCaps = nomeRaw.toUpperCase();
-    const imponibile = parseFloat(box.querySelector('.imponibile').value) || 0;
-    const totale = parseFloat(box.querySelector('.totale').value) || 0;
-
-    let frase = "";
-    if (tipo === "Il professionista") {
-        const titolo = box.querySelector('.titolo').value;
-        frase = `${titolo} ${nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(imponibile)} + oneri professionali + iva pari a € ${formatEuro(totale)} iva compresa.`;
-    } else {
-        frase = `La ditta ${nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(imponibile)} + iva pari a € ${formatEuro(totale)} iva compresa.`;
-    }
-    document.getElementById(`output-singolo-${id}`).value = frase;
-}
-
 function generaVerbale() {
     const tipoGlobale = document.getElementById('tipo-globale').value;
     const computoUfficio = parseFloat(document.getElementById('computo-ufficio').value) || 0;
@@ -75,12 +22,12 @@ function generaVerbale() {
 
     dati.sort((a, b) => a.imponibile - b.imponibile);
     let m1 = dati[0], m2 = dati[1];
-    let scostamento = ((m2.imponibile - m1.imponibile) / m1.imponibile) * 100;
+    let scostamentoTraOfferte = ((m2.imponibile - m1.imponibile) / m1.imponibile) * 100;
     
     let testo = "";
     let suff_iva = (tipoGlobale === "Il professionista" ? "+ oneri professionali + iva" : "+ iva");
 
-    if (scostamento > 5) {
+    if (scostamentoTraOfferte > 5) {
         let soggettoVincitore = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `della ditta ${m1.nomeCaps}`;
         testo = `Esaminate tutte le offerte la miglior offerta è risultata essere quella ${soggettoVincitore} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.\n`;
         testo += `la restante documentazione allegata è regolarmente timbrata e firmata.\n`;
@@ -102,19 +49,21 @@ function generaVerbale() {
         }
     }
 
-    // LOGICA ALLINEAMENTO COMPUTO UFFICIO (+/- 200 Euro)
+    // NUOVA LOGICA ALLINEAMENTO E CALCOLO SCOSTAMENTO
     let differenzaAssoluta = Math.abs(computoUfficio - m1.totale);
     
     if (differenzaAssoluta < 200) {
         testo += `Si segnala che la miglior offerta è risultata essere allineata al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
     } else {
-        let ribassoSuComputo = ((computoUfficio - m1.totale) / computoUfficio) * 100;
-        testo += `Si segnala che la miglior offerta presenta uno scostamento di circa il ${Math.round(ribassoSuComputo)}% in meno rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+        let scostamentoPercentuale = ((computoUfficio - m1.totale) / computoUfficio) * 100;
+        let valoreAssolutoPerc = Math.abs(Math.round(scostamentoPercentuale));
+        let direzione = (scostamentoPercentuale >= 0) ? "in meno" : "superiore";
+        
+        testo += `Si segnala che la miglior offerta presenta uno scostamento di circa il ${valoreAssolutoPerc}% ${direzione} rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
     }
     
-    if (scostamento > 5) {
+    if (scostamentoTraOfferte > 5) {
         let assegnatario = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `alla ditta ${m1.nomeCaps}`;
-        // MODIFICA RICHIESTA: Uso dell'imponibile con indicazione fiscale specifica nel riepilogo finale
         testo += `Si ritiene pertanto opportuno di assegnare l'attività ${assegnatario} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.`;
     }
 
@@ -122,12 +71,4 @@ function generaVerbale() {
     document.getElementById('output-testo-confronto').value = testo;
     resContainer.style.display = 'block';
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-}
-
-function copiaTesto(id) {
-    const el = document.getElementById(id);
-    if (!el || !el.value) return;
-    el.select();
-    document.execCommand("copy");
-    alert("Copiato!");
 }
