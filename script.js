@@ -114,6 +114,7 @@ function generaVerbale() {
     
     if (scostamento > 5) {
         let assegnatario = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `alla ditta ${m1.nomeCaps}`;
+        // MODIFICA RICHIESTA: Uso dell'imponibile con indicazione fiscale specifica nel riepilogo finale
         testo += `Si ritiene pertanto opportuno di assegnare l'attività ${assegnatario} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.`;
     }
 
