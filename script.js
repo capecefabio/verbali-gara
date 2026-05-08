@@ -75,17 +75,17 @@ function generaVerbale() {
 
     dati.sort((a, b) => a.imponibile - b.imponibile);
     let m1 = dati[0], m2 = dati[1];
-    let scostamento = ((m2.imponibile - m1.imponibile) / m1.imponibile) * 100;
+    let scostamentoTraOfferte = ((m2.imponibile - m1.imponibile) / m1.imponibile) * 100;
     
     let testo = "";
     let suff_iva = (tipoGlobale === "Il professionista" ? "+ oneri professionali + iva" : "+ iva");
 
-    if (scostamento > 5) {
+    if (scostamentoTraOfferte > 5) {
         let soggettoVincitore = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `della ditta ${m1.nomeCaps}`;
         testo = `Esaminate tutte le offerte la miglior offerta è risultata essere quella ${soggettoVincitore} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.\n`;
         testo += `la restante documentazione allegata è regolarmente timbrata e firmata.\n`;
         let secondoSoggetto = (tipoGlobale === "Il professionista") ? `${m2.titolo} ${m2.nomeCaps}` : `ditta ${m2.nomeCaps}`;
-        testo += `avendo la seconda offerta (${secondoSoggetto} offerta per un importo di € ${formatEuro(m2.imponibile)} ${suff_iva} pari a € ${formatEuro(m2.totale)} iva compresa.) uno scostamento rispetto alla prima offerta superiore al 5% (pari al ${scostamento.toFixed(2)}%).\n`;
+        testo += `avendo la seconda offerta (${secondoSoggetto} offerta per un importo di € ${formatEuro(m2.imponibile)} ${suff_iva} pari a € ${formatEuro(m2.totale)} iva compresa.) uno scostamento rispetto alla prima offerta superiore al 5%.\n`;
     } else {
         let miglioriOfferte = (tipoGlobale === "Il professionista") ? `dell'${m1.titolo} ${m1.nomeCaps} e quella dell'${m2.titolo} ${m2.nomeCaps}` : `della ditta ${m1.nomeCaps} e quella della ditta ${m2.nomeCaps}`;
         testo = `Esaminate tutte le offerte le migliori offerte risultano essere quelle ${miglioriOfferte} che hanno presentato le seguenti offerte:\n`;
@@ -94,7 +94,7 @@ function generaVerbale() {
         testo += `${d1} ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.\n`;
         testo += `${d2} ha presentato offerta per un importo di € ${formatEuro(m2.imponibile)} ${suff_iva} pari a € ${formatEuro(m2.totale)} iva compresa.\n`;
         testo += `la restante documentazione allegata è regolarmente timbrata e firmata.\n`;
-        testo += `avendo le due offerte uno scostamento inferiore al 5% (pari al ${scostamento.toFixed(2)}%) si ritiene di dover procedere ad una richiesta di riallineamento.\n`;
+        testo += `avendo le due offerte uno scostamento inferiore al 5% si ritiene di dover procedere ad una richiesta di riallineamento.\n`;
         if (dati[2]) {
             let m3 = dati[2];
             let d3 = (tipoGlobale === "Il professionista") ? `L'offerta dell'${m3.titolo} ${m3.nomeCaps}` : `L'offerta della ditta ${m3.nomeCaps}`;
@@ -102,10 +102,19 @@ function generaVerbale() {
         }
     }
 
-    let ribassoSuComputo = ((computoUfficio - m1.totale) / computoUfficio) * 100;
-    testo += `Si segnala che la miglior offerta presenta uno scostamento di circa il ${Math.round(ribassoSuComputo)}% in meno rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+    let differenzaAssoluta = Math.abs(computoUfficio - m1.totale);
     
-    if (scostamento > 5) {
+    if (differenzaAssoluta < 200) {
+        testo += `Si segnala che la miglior offerta è risultata essere allineata al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+    } else {
+        let scostamentoPercentuale = ((computoUfficio - m1.totale) / computoUfficio) * 100;
+        let valoreAssolutoPerc = Math.abs(Math.round(scostamentoPercentuale));
+        let direzione = (scostamentoPercentuale >= 0) ? "in meno" : "superiore";
+        
+        testo += `Si segnala che la miglior offerta presenta uno scostamento di circa il ${valoreAssolutoPerc}% ${direzione} rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+    }
+    
+    if (scostamentoTraOfferte > 5) {
         let assegnatario = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `alla ditta ${m1.nomeCaps}`;
         testo += `Si ritiene pertanto opportuno di assegnare l'attività ${assegnatario} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.`;
     }
