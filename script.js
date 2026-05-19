@@ -102,16 +102,17 @@ function generaVerbale() {
         }
     }
 
-    let differenzaAssoluta = Math.abs(computoUfficio - m1.totale);
+    // CONFRONTO TRA IMPONIBILI PER SCOSTAMENTO COMPUTO UFFICIO
+    let differenzaAssoluta = Math.abs(computoUfficio - m1.imponibile);
     
     if (differenzaAssoluta < 200) {
         testo += `Si segnala che la miglior offerta è risultata essere allineata al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
     } else {
-        let scostamentoPercentuale = ((computoUfficio - m1.totale) / computoUfficio) * 100;
+        let scostamentoPercentuale = ((computoUfficio - m1.imponibile) / computoUfficio) * 100;
         let valoreAssolutoPerc = Math.abs(Math.round(scostamentoPercentuale));
         let direzione = (scostamentoPercentuale >= 0) ? "in meno" : "superiore";
         
-        testo += `Si segnala che la miglior offerta presenta uno scostamento di circa il ${valoreAssolutoPerc}% ${direzione} rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+        testo += `Si segnala che la miglior offerta presenta uno scostamento di circa il ${valoreAssolutoPerc}% ${direzione} rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)} + oneri professionali + iva.\n`;
     }
     
     if (scostamentoTraOfferte > 5) {
