@@ -3,8 +3,14 @@ function toggleInterfaccia() {
     for (let i = 1; i <= 3; i++) {
         const oneriCont = document.getElementById(`oneri-container-${i}`);
         const titoloCont = document.getElementById(`titolo-container-${i}`);
-        if (oneriCont) oneriCont.style.display = (tipo === "Il professionista") ? 'flex' : 'none';
-        if (titoloCont) titoloCont.style.display = (tipo === "Il professionista") ? 'block' : 'none';
+        
+        if (tipo === "Il professionista") {
+            if (oneriCont) oneriCont.style.display = 'flex';
+            if (titoloCont) titoloCont.style.display = 'block';
+        } else {
+            if (oneriCont) oneriCont.style.display = 'none';
+            if (titoloCont) titoloCont.style.display = 'none';
+        }
         calcolaTotale(i);
     }
 }
@@ -64,4 +70,61 @@ function generaVerbale() {
 
         let titoloVal = (tipoGlobale === "Il professionista") ? b.querySelector('.titolo').value : "La ditta";
         let nomeCaps = nomeRaw.toUpperCase();
-        let imponibile
+        let imponibile = parseFloat(b.querySelector('.imponibile').value) || 0;
+        let totale = parseFloat(b.querySelector('.totale').value) || 0;
+
+        dati.push({ titolo: titoloVal, nomeCaps, imponibile, totale });
+    }
+
+    if (dati.length < 2) { alert("Inserisci almeno 2 soggetti."); return; }
+    if (computoUfficio <= 0) { alert("Inserisci il valore del computo di ufficio."); return; }
+
+    dati.sort((a, b) => a.imponibile - b.imponibile);
+    let m1 = dati[0], m2 = dati[1];
+    let scostamentoTraOfferte = ((m2.imponibile - m1.imponibile) / m1.imponibile) * 100;
+    
+    let testo = "";
+    let suff_iva = (tipoGlobale === "Il professionista" ? "+ oneri professionali + iva" : "+ iva");
+
+    let sogg1 = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `la ditta ${m1.nomeCaps}`;
+    let sogg2 = (tipoGlobale === "Il professionista") ? `${m2.titolo} ${m2.nomeCaps}` : `la ditta ${m2.nomeCaps}`;
+
+    testo = `Esaminate tutte le offerte la miglior offerta è risultata essere quella ${sogg1} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.\n`;
+    testo += `la restante documentazione allegata è regolarmente timbrata e firmata.\n`;
+
+    if (scostamentoTraOfferte > 5) {
+        testo += `avendo la seconda offerta (${sogg2} offerta per un importo di € ${formatEuro(m2.imponibile)} ${suff_iva} pari a € ${formatEuro(m2.totale)} iva compresa.) uno scostamento rispetto alla prima offerta superiore al 5% rispetto alla migliore offerta non si ritiene di dover procedere ad una richiesta di riallineamento.\n`;
+    } else {
+        testo += `avendo la seconda offerta (${sogg2} offerta per un importo di € ${formatEuro(m2.imponibile)} ${suff_iva} pari a € ${formatEuro(m2.totale)} iva compresa.) uno scostamento rispetto alla prima offerta inferiore al 5% rispetto alla migliore offerta si ritiene di dover procedere ad una richiesta di riallineamento.\n`;
+    }
+
+    let differenzaAssoluta = Math.abs(computoUfficio - m1.imponibile);
+    
+    if (differenzaAssoluta < 200) {
+        testo += `Si segnala che la miglior offerta è risultata essere allineata al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+    } else {
+        let scostamentoPercentuale = ((computoUfficio - m1.imponibile) / computoUfficio) * 100;
+        let valoreAssolutoPerc = Math.abs(Math.round(scostamentoPercentuale));
+        let direzione = (scostamentoPercentuale >= 0) ? "in meno" : "superiore";
+        
+        testo += `Si segnala che la miglior offerta presenta uno scostamento di circa il ${valoreAssolutoPerc}% ${direzione} rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+    }
+    
+    if (scostamentoTraOfferte > 5) {
+        let assegnatario = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `alla ditta ${m1.nomeCaps}`;
+        testo += `Si ritiene pertanto opportuno di assegnare l'attività ${assegnatario} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.`;
+    }
+
+    const resContainer = document.getElementById('risultato-finale');
+    document.getElementById('output-testo-confronto').value = testo;
+    resContainer.style.display = 'block';
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+function copiaTesto(id) {
+    const el = document.getElementById(id);
+    if (!el || !el.value) return;
+    el.select();
+    document.execCommand("copy");
+    alert("Copiato!");
+}
