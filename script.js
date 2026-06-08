@@ -33,18 +33,6 @@ function formatEuro(valore) {
     return new Intl.NumberFormat('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valore);
 }
 
-// Funzione di utilità per evitare stringhe come "dell'L'Arch." o "dell'Lo Studio"
-function pulisciArticolo(titolo, nome) {
-    const t = titolo.trim();
-    if (t === "L'Arch." || t === "L'Ing.") {
-        return `dell'${t.replace("L'", "")} ${nome}`;
-    }
-    if (t === "Lo Studio") {
-        return `dello ${t.replace("Lo ", "")} ${nome}`;
-    }
-    return `della ditta ${nome}`;
-}
-
 function generaSingola(id) {
     const box = document.getElementById(`box-${id}`);
     const tipo = document.getElementById('tipo-globale').value;
@@ -76,77 +64,4 @@ function generaVerbale() {
 
         let titoloVal = (tipoGlobale === "Il professionista") ? b.querySelector('.titolo').value : "La ditta";
         let nomeCaps = nomeRaw.toUpperCase();
-        let imponibile = parseFloat(b.querySelector('.imponibile').value) || 0;
-        let totale = parseFloat(b.querySelector('.totale').value) || 0;
-
-        dati.push({ titolo: titoloVal, nomeCaps, imponibile, totale });
-    }
-
-    if (dati.length < 2) { alert("Inserisci almeno 2 soggetti."); return; }
-    if (computoUfficio <= 0) { alert("Inserisci il valore del computo di ufficio."); return; }
-
-    dati.sort((a, b) => a.imponibile - b.imponibile);
-    let m1 = dati[0], m2 = dati[1];
-    let scostamentoTraOfferte = ((m2.imponibile - m1.imponibile) / m1.imponibile) * 100;
-    
-    let testo = "";
-    let suff_iva = (tipoGlobale === "Il professionista" ? "+ oneri professionali + iva" : "+ iva");
-
-    if (scostamentoTraOfferte > 5) {
-        let soggettoVincitore = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `della ditta ${m1.nomeCaps}`;
-        testo = `Esaminate tutte le offerte la miglior offerta è risultata essere quella ${soggettoVincitore} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.\n`;
-        testo += `la restante documentazione allegata è regolarmente timbrata e firmata.\n`;
-        let secondoSoggetto = (tipoGlobale === "Il professionista") ? `${m2.titolo} ${m2.nomeCaps}` : `ditta ${m2.nomeCaps}`;
-        testo += `avendo la seconda offerta (${secondoSoggetto} offerta per un importo di € ${formatEuro(m2.imponibile)} ${suff_iva} pari a € ${formatEuro(m2.totale)} iva compresa.) uno scostamento rispetto alla prima offerta superiore al 5% rispetto alla migliore offerta non si ritiene di dover procedere ad una richiesta di riallineamento.\n`;
-    } else {
-        let det1 = pulisciArticolo(m1.titolo, m1.nomeCaps);
-        let det2 = pulisciArticolo(m2.titolo, m2.nomeCaps);
-        
-        testo = `Esaminate tutte le offerte le migliori offerte risultano essere quelle ${det1} e quella ${det2} che hanno presentato le seguenti offerte:\n`;
-        
-        let d1 = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `La ditta ${m1.nomeCaps}`;
-        let d2 = (tipoGlobale === "Il professionista") ? `${m2.titolo} ${m2.nomeCaps}` : `La ditta ${m2.nomeCaps}`;
-        
-        testo += `${d1} ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.\n`;
-        testo += `${d2} ha presentato offerta per un importo di € ${formatEuro(m2.imponibile)} ${suff_iva} pari a € ${formatEuro(m2.totale)} iva compresa.\n`;
-        testo += `la restante documentazione allegata è regolarmente timbrata e firmata.\n`;
-        testo += `avendo le due offerte uno scostamento inferiore al 5% si ritiene di dover procedere ad una richiesta di riallineamento.\n`;
-        
-        if (dati[2]) {
-            let m3 = dati[2];
-            let det3 = pulisciArticolo(m3.titolo, m3.nomeCaps);
-            let diffTerzaOfferta = ((m3.imponibile - m1.imponibile) / m1.imponibile * 100).toFixed(2);
-            testo += `L'offerta ${det3}, pari a € ${formatEuro(m3.imponibile)} ${suff_iva} e ad € ${formatEuro(m3.totale)} iva compresa, risulta essere superiore del ${diffTerzaOfferta}% rispetto alla migliore offerta.\n`;
-        }
-    }
-
-    let differenzaAssoluta = Math.abs(computoUfficio - m1.imponibile);
-    
-    if (differenzaAssoluta < 200) {
-        testo += `Si segnala che la miglior offerta è risultata essere allineata al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
-    } else {
-        let scostamentoPercentuale = ((computoUfficio - m1.imponibile) / computoUfficio) * 100;
-        let valoreAssolutoPerc = Math.abs(Math.round(scostamentoPercentuale));
-        let direzione = (scostamentoPercentuale >= 0) ? "in meno" : "superiore";
-        
-        testo += `Si segnala che la miglior offerta presenta uno scostamento di circa il ${valoreAssolutoPerc}% ${direzione} rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
-    }
-    
-    if (scostamentoTraOfferte > 5) {
-        let assegnatario = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `alla ditta ${m1.nomeCaps}`;
-        testo += `Si ritiene pertanto opportuno di assegnare l'attività ${assegnatario} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.`;
-    }
-
-    const resContainer = document.getElementById('risultato-finale');
-    document.getElementById('output-testo-confronto').value = testo;
-    resContainer.style.display = 'block';
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-}
-
-function copiaTesto(id) {
-    const el = document.getElementById(id);
-    if (!el || !el.value) return;
-    el.select();
-    document.execCommand("copy");
-    alert("Copiato!");
-}
+        let imponibile
