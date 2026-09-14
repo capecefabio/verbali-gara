@@ -50,9 +50,9 @@ function generaSingola(id) {
     let frase = "";
     if (tipo === "Il professionista") {
         const titolo = box.querySelector('.titolo').value;
-        frase = `${titolo} ${nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(imponibile)} + oneri professionali + iva pari a € ${formatEuro(totale)} iva compresa.`;
+        frase = `${titolo} ${nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(imponibile)} + oneri professionali + iva pari a € ${formatEuro(totale)}.`;
     } else {
-        frase = `La ditta ${nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(imponibile)} + iva pari a € ${formatEuro(totale)} iva compresa.`;
+        frase = `La ditta ${nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(imponibile)} + iva pari a € ${formatEuro(totale)}.`;
     }
     document.getElementById(`output-singolo-${id}`).value = frase;
 }
@@ -89,7 +89,7 @@ function generaVerbale() {
     let sogg1 = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `la ditta ${m1.nomeCaps}`;
     let sogg2 = (tipoGlobale === "Il professionista") ? `${m2.titolo} ${m2.nomeCaps}` : `la ditta ${m2.nomeCaps}`;
 
-    testo = `Esaminate tutte le offerte la miglior offerta è risultata essere quella ${sogg1} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.\n`;
+    testo = `Esaminate tutte le offerte la miglior offerta è risultata essere quella ${sogg1} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)}.\n`;
     testo += `la restante documentazione allegata è regolarmente timbrata e firmata.\n`;
 
     if (scostamentoTraOfferte > 5) {
@@ -112,7 +112,7 @@ function generaVerbale() {
     
     if (scostamentoTraOfferte > 5) {
         let assegnatario = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `alla ditta ${m1.nomeCaps}`;
-        testo += `Si ritiene pertanto opportuno di assegnare l'attività ${assegnatario} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)} iva compresa.`;
+        testo += `Si ritiene pertanto opportuno di assegnare l'attività ${assegnatario} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)}.`;
     }
 
     const resContainer = document.getElementById('risultato-finale');
