@@ -1,5 +1,5 @@
 const TIPO_PROFESSIONISTA = 'Il professionista';
-const NUMERO_OFFERTE = 3;
+const NUMERO_OFFERTE_INIZIALI = 3;
 const SOGLIA_RIALLINEAMENTO = 5;
 const SOGLIA_ALLINEAMENTO = 200;
 const PERCENTUALE_ONERI_DEFAULT = 4;
@@ -54,57 +54,76 @@ function getSuffissoImporto(pIva, professionista = isProfessionista()) {
     return professionista ? `+ oneri professionali + ${ivaLabel}` : `+ ${ivaLabel}`;
 }
 
+function creaOffertaMarkup(id) {
+    return `
+        <div class="offerta-box" id="box-${id}">
+            <span class="badge">Soggetto ${id}</span>
+            <div class="row">
+                <div class="field titolo-field" id="titolo-container-${id}">
+                    <label>Titolo</label>
+                    <select class="titolo">
+                        <option value="L'Arch.">L'Arch.</option>
+                        <option value="L'Ing.">L'Ing.</option>
+                        <option value="Lo Studio">Lo Studio</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Nome / Ragione Sociale</label>
+                    <input type="text" class="nome" placeholder="Inserire nome..." autocomplete="organization">
+                </div>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label>Imponibile (€)</label>
+                    <input type="number" step="0.01" min="0" class="imponibile" placeholder="0.00" inputmode="decimal">
+                </div>
+                <div class="calc-group">
+                    <div class="field oneri-container" id="oneri-container-${id}">
+                        <label>Oneri (%)</label>
+                        <input type="number" min="0" step="0.01" class="perc-oneri" value="${PERCENTUALE_ONERI_DEFAULT}" inputmode="decimal">
+                    </div>
+                    <div class="field">
+                        <label>IVA (%)</label>
+                        <input type="number" min="0" step="0.01" class="perc-iva" value="${PERCENTUALE_IVA_DEFAULT}" inputmode="decimal">
+                    </div>
+                </div>
+                <div class="field totale-field">
+                    <label>Totale Calcolato (€)</label>
+                    <input type="number" step="0.01" class="totale" readonly placeholder="0.00">
+                </div>
+            </div>
+            <div class="btn-group-singolo">
+                <button type="button" class="btn-small" data-action="genera-singola" data-id="${id}">Genera descrizione</button>
+                <button type="button" class="btn-small btn-copy-mini" data-action="copia-singola" data-id="${id}">Copia testo</button>
+            </div>
+            <textarea id="output-singolo-${id}" class="output-singolo" placeholder="La descrizione apparirà qui..." readonly></textarea>
+        </div>
+    `;
+}
+
 function renderOfferte() {
     const container = $('#offerte-list');
     if (!container) return;
 
-    container.innerHTML = Array.from({ length: NUMERO_OFFERTE }, (_, index) => {
-        const id = index + 1;
-        return `
-            <div class="offerta-box" id="box-${id}">
-                <span class="badge">Soggetto ${id}</span>
-                <div class="row">
-                    <div class="field titolo-field" id="titolo-container-${id}">
-                        <label>Titolo</label>
-                        <select class="titolo">
-                            <option value="L'Arch.">L'Arch.</option>
-                            <option value="L'Ing.">L'Ing.</option>
-                            <option value="Lo Studio">Lo Studio</option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label>Nome / Ragione Sociale</label>
-                        <input type="text" class="nome" placeholder="Inserire nome..." autocomplete="organization">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="field">
-                        <label>Imponibile (€)</label>
-                        <input type="number" step="0.01" min="0" class="imponibile" placeholder="0.00" inputmode="decimal">
-                    </div>
-                    <div class="calc-group">
-                        <div class="field oneri-container" id="oneri-container-${id}">
-                            <label>Oneri (%)</label>
-                            <input type="number" min="0" step="0.01" class="perc-oneri" value="${PERCENTUALE_ONERI_DEFAULT}" inputmode="decimal">
-                        </div>
-                        <div class="field">
-                            <label>IVA (%)</label>
-                            <input type="number" min="0" step="0.01" class="perc-iva" value="${PERCENTUALE_IVA_DEFAULT}" inputmode="decimal">
-                        </div>
-                    </div>
-                    <div class="field totale-field">
-                        <label>Totale Calcolato (€)</label>
-                        <input type="number" step="0.01" class="totale" readonly placeholder="0.00">
-                    </div>
-                </div>
-                <div class="btn-group-singolo">
-                    <button type="button" class="btn-small" data-action="genera-singola" data-id="${id}">Genera descrizione</button>
-                    <button type="button" class="btn-small btn-copy-mini" data-action="copia-singola" data-id="${id}">Copia testo</button>
-                </div>
-                <textarea id="output-singolo-${id}" class="output-singolo" placeholder="La descrizione apparirà qui..."></textarea>
-            </div>
-        `;
-    }).join('');
+    container.innerHTML = Array.from(
+        { length: NUMERO_OFFERTE_INIZIALI },
+        (_, index) => creaOffertaMarkup(index + 1)
+    ).join('');
+}
+
+function aggiungiPartecipante() {
+    const container = $('#offerte-list');
+    if (!container) return;
+
+    const ids = $$('.offerta-box', container)
+        .map((box) => Number(box.id.replace('box-', '')))
+        .filter(Number.isFinite);
+
+    const nuovoId = ids.length > 0 ? Math.max(...ids) + 1 : 1;
+    container.insertAdjacentHTML('beforeend', creaOffertaMarkup(nuovoId));
+
+    aggiornaVisibilitaInterfaccia();
+    getBox(nuovoId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function aggiornaVisibilitaInterfaccia() {
@@ -119,7 +138,7 @@ function aggiornaVisibilitaInterfaccia() {
     });
 
     $$('.imponibile, .perc-iva, .perc-oneri').forEach((elemento) => {
-        elemento.dispatchEvent(new Event('input'));
+        elemento.dispatchEvent(new Event('input', { bubbles: true }));
     });
 }
 
@@ -136,6 +155,10 @@ function aggiornaTotale(id) {
 
     const { totale } = calcolaImporti(imponibile, pIva, pOneri);
     totaleField.value = totale.toFixed(2);
+}
+
+function calcolaTotale(id) {
+    aggiornaTotale(id);
 }
 
 function getDatiOfferta(id) {
@@ -192,7 +215,10 @@ function generaSingola(id) {
 }
 
 function getOfferteValide() {
-    return Array.from({ length: NUMERO_OFFERTE }, (_, index) => getDatiOfferta(index + 1))
+    return $$('.offerta-box')
+        .map((box) => Number(box.id.replace('box-', '')))
+        .filter(Number.isFinite)
+        .map((id) => getDatiOfferta(id))
         .filter(Boolean);
 }
 
@@ -206,7 +232,7 @@ function generaParagrafoRiallineamento(secondaOfferta, scostamento) {
     const importo = formatImportoOfferta(secondaOfferta, { compresa: true });
     const confronto = scostamento > SOGLIA_RIALLINEAMENTO
         ? 'superiore al 5% rispetto alla migliore offerta non si ritiene di dover procedere ad una richiesta di riallineamento.'
-        : 'non superiore al 5% rispetto alla migliore offerta si ritiene di dover procedere ad una richiesta di riallineamento.';
+        : 'inferiore al 5% rispetto alla migliore offerta si ritiene di dover procedere ad una richiesta di riallineamento.';
 
     return `avendo la seconda offerta (${soggetto} offerta per un importo di ${importo}) uno scostamento rispetto alla prima offerta ${confronto}\n`;
 }
@@ -258,10 +284,11 @@ function generaVerbale() {
         generaParagrafoAssegnazione(miglioreOfferta, scostamento)
     ].filter(Boolean);
 
+    const testo = paragrafi.join('\n');
     const output = $('#output-testo-confronto');
     const risultato = $('#risultato-finale');
 
-    if (output) output.value = paragrafi.join('\n');
+    if (output) output.value = testo;
     if (risultato) {
         risultato.classList.remove('hidden');
         risultato.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -298,6 +325,7 @@ function gestisciClick(evento) {
     const id = Number(pulsante.dataset.id);
     const action = pulsante.dataset.action;
 
+    if (action === 'aggiungi-partecipante') aggiungiPartecipante();
     if (action === 'genera-singola') generaSingola(id);
     if (action === 'copia-singola') copiaTesto(`output-singolo-${id}`);
     if (action === 'genera-verbale') generaVerbale();
@@ -314,7 +342,9 @@ function inizializza() {
     document.addEventListener('click', gestisciClick);
 
     aggiornaVisibilitaInterfaccia();
-    Array.from({ length: NUMERO_OFFERTE }, (_, index) => aggiornaTotale(index + 1));
+    $$('.offerta-box').forEach((box) => {
+        aggiornaTotale(Number(box.id.replace('box-', '')));
+    });
 }
 
 if (document.readyState === 'loading') {
