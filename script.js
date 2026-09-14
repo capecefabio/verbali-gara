@@ -1,130 +1,192 @@
+const TIPO_PROFESSIONISTA = "Il professionista";
+const NUMERO_OFFERTE = 3;
+
+function getTipoGlobale() {
+    return document.getElementById('tipo-globale')?.value || '';
+}
+
+function isProfessionista() {
+    return getTipoGlobale() === TIPO_PROFESSIONISTA;
+}
+
+function getBox(id) {
+    return document.getElementById(`box-${id}`);
+}
+
+function getValoreNumerico(elemento) {
+    return parseFloat(elemento?.value) || 0;
+}
+
+function getIvaLabel(percentualeIva) {
+    return percentualeIva === 0 ? 'iva esente' : 'iva';
+}
+
+function getSuffissoImporto(percentualeIva, professionista = isProfessionista()) {
+    const ivaLabel = getIvaLabel(percentualeIva);
+    return professionista ? `+ oneri professionali + ${ivaLabel}` : `+ ${ivaLabel}`;
+}
+
 function toggleInterfaccia() {
-    const tipo = document.getElementById('tipo-globale').value;
-    for (let i = 1; i <= 3; i++) {
+    const professionista = isProfessionista();
+
+    for (let i = 1; i <= NUMERO_OFFERTE; i++) {
         const oneriCont = document.getElementById(`oneri-container-${i}`);
         const titoloCont = document.getElementById(`titolo-container-${i}`);
-        
-        if (tipo === "Il professionista") {
-            if (oneriCont) oneriCont.style.display = 'flex';
-            if (titoloCont) titoloCont.style.display = 'block';
-        } else {
-            if (oneriCont) oneriCont.style.display = 'none';
-            if (titoloCont) titoloCont.style.display = 'none';
-        }
+
+        if (oneriCont) oneriCont.style.display = professionista ? 'flex' : 'none';
+        if (titoloCont) titoloCont.style.display = professionista ? 'block' : 'none';
+
         calcolaTotale(i);
     }
 }
 
 function calcolaTotale(id) {
-    const box = document.getElementById(`box-${id}`);
+    const box = getBox(id);
     if (!box) return;
-    const tipo = document.getElementById('tipo-globale').value;
-    const imponibile = parseFloat(box.querySelector('.imponibile').value) || 0;
-    const pIva = parseFloat(box.querySelector('.perc-iva').value) || 0;
+
+    const imponibile = getValoreNumerico(box.querySelector('.imponibile'));
+    const pIva = getValoreNumerico(box.querySelector('.perc-iva'));
     const totaleField = box.querySelector('.totale');
 
-    if (tipo === "Il professionista") {
-        const pOneri = parseFloat(box.querySelector('.perc-oneri').value) || 0;
-        const oneri = imponibile * (pOneri / 100);
-        const imponibilePiuOneri = imponibile + oneri;
-        const iva = imponibilePiuOneri * (pIva / 100);
-        totaleField.value = (imponibilePiuOneri + iva).toFixed(2);
-    } else {
-        const iva = imponibile * (pIva / 100);
-        totaleField.value = (imponibile + iva).toFixed(2);
+    if (!totaleField) return;
+
+    let baseTotale = imponibile;
+
+    if (isProfessionista()) {
+        const pOneri = getValoreNumerico(box.querySelector('.perc-oneri'));
+        baseTotale += imponibile * (pOneri / 100);
     }
+
+    const iva = baseTotale * (pIva / 100);
+    totaleField.value = (baseTotale + iva).toFixed(2);
 }
 
 function formatEuro(valore) {
-    return new Intl.NumberFormat('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valore);
+    return new Intl.NumberFormat('it-IT', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(valore);
+}
+
+function getDatiOfferta(id) {
+    const box = getBox(id);
+    if (!box) return null;
+
+    const nomeRaw = box.querySelector('.nome')?.value.trim() || '';
+    if (!nomeRaw) return null;
+
+    return {
+        titolo: isProfessionista() ? (box.querySelector('.titolo')?.value || '') : 'La ditta',
+        nomeCaps: nomeRaw.toUpperCase(),
+        imponibile: getValoreNumerico(box.querySelector('.imponibile')),
+        totale: getValoreNumerico(box.querySelector('.totale')),
+        pIva: getValoreNumerico(box.querySelector('.perc-iva'))
+    };
+}
+
+function getSoggetto(dato) {
+    return isProfessionista()
+        ? `${dato.titolo} ${dato.nomeCaps}`
+        : `la ditta ${dato.nomeCaps}`;
 }
 
 function generaSingola(id) {
-    const box = document.getElementById(`box-${id}`);
-    const tipo = document.getElementById('tipo-globale').value;
-    const nomeRaw = box.querySelector('.nome').value.trim() || `SOGGETTO ${id}`;
-    const nomeCaps = nomeRaw.toUpperCase();
-    const imponibile = parseFloat(box.querySelector('.imponibile').value) || 0;
-    const totale = parseFloat(box.querySelector('.totale').value) || 0;
+    const dato = getDatiOfferta(id);
+    if (!dato) return;
 
-    let frase = "";
-    if (tipo === "Il professionista") {
-        const titolo = box.querySelector('.titolo').value;
-        frase = `${titolo} ${nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(imponibile)} + oneri professionali + iva pari a € ${formatEuro(totale)}.`;
-    } else {
-        frase = `La ditta ${nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(imponibile)} + iva pari a € ${formatEuro(totale)}.`;
-    }
-    document.getElementById(`output-singolo-${id}`).value = frase;
+    const suffisso = getSuffissoImporto(dato.pIva);
+    const frase = isProfessionista()
+        ? `${dato.titolo} ${dato.nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(dato.imponibile)} ${suffisso} pari a € ${formatEuro(dato.totale)}.`
+        : `La ditta ${dato.nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(dato.imponibile)} ${suffisso} pari a € ${formatEuro(dato.totale)}.`;
+
+    const output = document.getElementById(`output-singolo-${id}`);
+    if (output) output.value = frase;
 }
 
 function generaVerbale() {
-    const tipoGlobale = document.getElementById('tipo-globale').value;
-    const computoUfficio = parseFloat(document.getElementById('computo-ufficio').value) || 0;
-    let dati = [];
+    const computoUfficio = getValoreNumerico(document.getElementById('computo-ufficio'));
+    const dati = [];
 
-    for (let i = 1; i <= 3; i++) {
-        const b = document.getElementById(`box-${i}`);
-        if (!b) continue;
-        let nomeRaw = b.querySelector('.nome').value.trim();
-        if (nomeRaw === "") continue;
-
-        let titoloVal = (tipoGlobale === "Il professionista") ? b.querySelector('.titolo').value : "La ditta";
-        let nomeCaps = nomeRaw.toUpperCase();
-        let imponibile = parseFloat(b.querySelector('.imponibile').value) || 0;
-        let totale = parseFloat(b.querySelector('.totale').value) || 0;
-
-        dati.push({ titolo: titoloVal, nomeCaps, imponibile, totale });
+    for (let i = 1; i <= NUMERO_OFFERTE; i++) {
+        const dato = getDatiOfferta(i);
+        if (dato) dati.push(dato);
     }
 
-    if (dati.length < 2) { alert("Inserisci almeno 2 soggetti."); return; }
-    if (computoUfficio <= 0) { alert("Inserisci il valore del computo di ufficio."); return; }
+    if (dati.length < 2) {
+        alert('Inserisci almeno 2 soggetti.');
+        return;
+    }
+
+    if (computoUfficio <= 0) {
+        alert('Inserisci il valore del computo di ufficio.');
+        return;
+    }
 
     dati.sort((a, b) => a.imponibile - b.imponibile);
-    let m1 = dati[0], m2 = dati[1];
-    let scostamentoTraOfferte = ((m2.imponibile - m1.imponibile) / m1.imponibile) * 100;
-    
-    let testo = "";
-    let suff_iva = (tipoGlobale === "Il professionista" ? "+ oneri professionali + iva" : "+ iva");
 
-    let sogg1 = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `la ditta ${m1.nomeCaps}`;
-    let sogg2 = (tipoGlobale === "Il professionista") ? `${m2.titolo} ${m2.nomeCaps}` : `la ditta ${m2.nomeCaps}`;
+    const [m1, m2] = dati;
+    const scostamentoTraOfferte = m1.imponibile > 0
+        ? ((m2.imponibile - m1.imponibile) / m1.imponibile) * 100
+        : 0;
 
-    testo = `Esaminate tutte le offerte la miglior offerta è risultata essere quella ${sogg1} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)}.\n`;
+    const suffIvaM1 = getSuffissoImporto(m1.pIva);
+    const suffIvaM2 = getSuffissoImporto(m2.pIva);
+    const sogg1 = getSoggetto(m1);
+    const sogg2 = getSoggetto(m2);
+
+    let testo = `Esaminate tutte le offerte la miglior offerta è risultata essere quella ${sogg1} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suffIvaM1} pari a € ${formatEuro(m1.totale)}.\n`;
     testo += `la restante documentazione allegata è regolarmente timbrata e firmata.\n`;
 
+    const suffIvaConCompresaM2 = `${suffIvaM2} pari a € ${formatEuro(m2.totale)}${m2.pIva === 0 ? '' : ' iva compresa'}.`;
     if (scostamentoTraOfferte > 5) {
-        testo += `avendo la seconda offerta (${sogg2} offerta per un importo di € ${formatEuro(m2.imponibile)} ${suff_iva} pari a € ${formatEuro(m2.totale)} iva compresa.) uno scostamento rispetto alla prima offerta superiore al 5% rispetto alla migliore offerta non si ritiene di dover procedere ad una richiesta di riallineamento.\n`;
+        testo += `avendo la seconda offerta (${sogg2} offerta per un importo di € ${formatEuro(m2.imponibile)} ${suffIvaConCompresaM2}) uno scostamento rispetto alla prima offerta superiore al 5% rispetto alla migliore offerta non si ritiene di dover procedere ad una richiesta di riallineamento.\n`;
     } else {
-        testo += `avendo la seconda offerta (${sogg2} offerta per un importo di € ${formatEuro(m2.imponibile)} ${suff_iva} pari a € ${formatEuro(m2.totale)} iva compresa.) uno scostamento rispetto alla prima offerta inferiore al 5% rispetto alla migliore offerta si ritiene di dover procedere ad una richiesta di riallineamento.\n`;
+        testo += `avendo la seconda offerta (${sogg2} offerta per un importo di € ${formatEuro(m2.imponibile)} ${suffIvaConCompresaM2}) uno scostamento rispetto alla prima offerta inferiore al 5% rispetto alla migliore offerta si ritiene di dover procedere ad una richiesta di riallineamento.\n`;
     }
 
-    let differenzaAssoluta = Math.abs(computoUfficio - m1.imponibile);
-    
+    const differenzaAssoluta = Math.abs(computoUfficio - m1.imponibile);
+
     if (differenzaAssoluta < 200) {
         testo += `Si segnala che la miglior offerta è risultata essere allineata al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
     } else {
-        let scostamentoPercentuale = ((computoUfficio - m1.imponibile) / computoUfficio) * 100;
-        let valoreAssolutoPerc = Math.abs(Math.round(scostamentoPercentuale));
-        let direzione = (scostamentoPercentuale >= 0) ? "in meno" : "superiore";
-        
+        const scostamentoPercentuale = ((computoUfficio - m1.imponibile) / computoUfficio) * 100;
+        const valoreAssolutoPerc = Math.abs(Math.round(scostamentoPercentuale));
+        const direzione = scostamentoPercentuale >= 0 ? 'in meno' : 'superiore';
+
         testo += `Si segnala che la miglior offerta presenta uno scostamento di circa il ${valoreAssolutoPerc}% ${direzione} rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
     }
-    
+
     if (scostamentoTraOfferte > 5) {
-        let assegnatario = (tipoGlobale === "Il professionista") ? `${m1.titolo} ${m1.nomeCaps}` : `alla ditta ${m1.nomeCaps}`;
-        testo += `Si ritiene pertanto opportuno di assegnare l'attività ${assegnatario} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suff_iva} pari a € ${formatEuro(m1.totale)}.`;
+        const assegnatario = getSoggetto(m1);
+        testo += `Si ritiene pertanto opportuno di assegnare l'attività ${assegnatario} che ha presentato offerta per un importo di € ${formatEuro(m1.imponibile)} ${suffIvaM1} pari a € ${formatEuro(m1.totale)}.`;
     }
 
     const resContainer = document.getElementById('risultato-finale');
-    document.getElementById('output-testo-confronto').value = testo;
-    resContainer.style.display = 'block';
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    const output = document.getElementById('output-testo-confronto');
+
+    if (output) output.value = testo;
+    if (resContainer) {
+        resContainer.style.display = 'block';
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
 }
 
 function copiaTesto(id) {
     const el = document.getElementById(id);
-    if (!el || !el.value) return;
+    if (!el?.value) return;
+
+    if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(el.value)
+            .then(() => alert('Copiato!'))
+            .catch(() => copiaTestoLegacy(el));
+        return;
+    }
+
+    copiaTestoLegacy(el);
+}
+
+function copiaTestoLegacy(el) {
     el.select();
-    document.execCommand("copy");
-    alert("Copiato!");
+    document.execCommand('copy');
+    alert('Copiato!');
 }
