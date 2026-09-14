@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verbali GarApp</title>
-    <link rel="stylesheet" href="style.css?v=20260914">
+    <link rel="stylesheet" href="style.css?v=20260914-2">
 </head>
 <body>
     <main class="container">
@@ -13,8 +13,12 @@
         <section class="header-settings" aria-label="Impostazioni gara">
             <div class="header-row">
                 <div class="field">
-                    <label for="tipo-globale">Tipo partecipanti:</label>
-                    <select id="tipo-globale">
+                    <label>Tipo partecipanti</label>
+                    <div class="segmented-control" role="tablist" aria-label="Tipo partecipanti">
+                        <button type="button" class="segment active" role="tab" aria-selected="true" data-tipo="La ditta">Gara tra Aziende</button>
+                        <button type="button" class="segment" role="tab" aria-selected="false" data-tipo="Il professionista">Gara tra Professionisti</button>
+                    </div>
+                    <select id="tipo-globale" class="visually-hidden" aria-hidden="true" tabindex="-1">
                         <option value="La ditta">Gara tra Aziende</option>
                         <option value="Il professionista">Gara tra Professionisti</option>
                     </select>
@@ -43,6 +47,6 @@
         </section>
     </main>
 
-    <script src="script.js?v=20260914"></script>
+    <script src="script.js?v=20260914-2"></script>
 </body>
 </html>
