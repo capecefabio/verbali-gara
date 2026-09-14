@@ -56,10 +56,17 @@ function getSuffissoImporto(pIva, professionista = isProfessionista()) {
 
 function creaOffertaMarkup(id) {
     return `
-        <div class="offerta-box" id="box-${id}">
-            <span class="badge">Soggetto ${id}</span>
-            <div class="row">
-                <div class="field titolo-field" id="titolo-container-${id}">
+        <article class="offerta-box" id="box-${id}">
+            <div class="participant-topline">
+                <div class="participant-number">${id}</div>
+                <div class="participant-meta">
+                    <span class="badge">Soggetto ${id}</span>
+                    <span class="participant-type">${isProfessionista() ? 'Professionista' : 'Azienda'}</span>
+                </div>
+            </div>
+
+            <div class="row identity-row">
+                <div class="field titolo-field hidden" id="titolo-container-${id}">
                     <label>Titolo</label>
                     <select class="titolo">
                         <option value="L'Arch.">L'Arch.</option>
@@ -67,18 +74,22 @@ function creaOffertaMarkup(id) {
                         <option value="Lo Studio">Lo Studio</option>
                     </select>
                 </div>
-                <div class="field">
+                <div class="field name-field">
                     <label>Nome / Ragione Sociale</label>
                     <input type="text" class="nome" placeholder="Inserire nome..." autocomplete="organization">
                 </div>
             </div>
-            <div class="row">
-                <div class="field">
-                    <label>Imponibile (€)</label>
-                    <input type="number" step="0.01" min="0" class="imponibile" placeholder="0.00" inputmode="decimal">
+
+            <div class="row calculation-row">
+                <div class="field imponibile-field">
+                    <label>Imponibile</label>
+                    <div class="input-with-prefix">
+                        <span>€</span>
+                        <input type="number" step="0.01" min="0" class="imponibile" placeholder="0,00" inputmode="decimal">
+                    </div>
                 </div>
                 <div class="calc-group">
-                    <div class="field oneri-container" id="oneri-container-${id}">
+                    <div class="field oneri-container hidden" id="oneri-container-${id}">
                         <label>Oneri (%)</label>
                         <input type="number" min="0" step="0.01" class="perc-oneri" value="${PERCENTUALE_ONERI_DEFAULT}" inputmode="decimal">
                     </div>
@@ -88,16 +99,11 @@ function creaOffertaMarkup(id) {
                     </div>
                 </div>
                 <div class="field totale-field">
-                    <label>Totale Calcolato (€)</label>
-                    <input type="number" step="0.01" class="totale" readonly placeholder="0.00">
+                    <label>Totale</label>
+                    <input type="text" class="totale" readonly placeholder="€ 0,00">
                 </div>
             </div>
-            <div class="btn-group-singolo">
-                <button type="button" class="btn-small" data-action="genera-singola" data-id="${id}">Genera descrizione</button>
-                <button type="button" class="btn-small btn-copy-mini" data-action="copia-singola" data-id="${id}">Copia testo</button>
-            </div>
-            <textarea id="output-singolo-${id}" class="output-singolo" placeholder="La descrizione apparirà qui..." readonly></textarea>
-        </div>
+        </article>
     `;
 }
 
@@ -121,7 +127,12 @@ function aggiornaTabTipo(tipo) {
         segmento.setAttribute('aria-selected', String(attivo));
     });
 
+    $$('.participant-type').forEach((elemento) => {
+        elemento.textContent = tipo === TIPO_PROFESSIONISTA ? 'Professionista' : 'Azienda';
+    });
+
     aggiornaVisibilitaInterfaccia();
+    aggiornaVerbaleLive();
 }
 
 function aggiungiPartecipante() {
@@ -136,7 +147,9 @@ function aggiungiPartecipante() {
     container.insertAdjacentHTML('beforeend', creaOffertaMarkup(nuovoId));
 
     aggiornaVisibilitaInterfaccia();
+    aggiornaVerbaleLive();
     getBox(nuovoId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    $(`.nome`, getBox(nuovoId))?.focus();
 }
 
 function aggiornaVisibilitaInterfaccia() {
@@ -151,7 +164,8 @@ function aggiornaVisibilitaInterfaccia() {
     });
 
     $$('.imponibile, .perc-iva, .perc-oneri').forEach((elemento) => {
-        elemento.dispatchEvent(new Event('input', { bubbles: true }));
+        const box = elemento.closest('.offerta-box');
+        if (box) aggiornaTotale(Number(box.id.replace('box-', '')));
     });
 }
 
@@ -167,11 +181,7 @@ function aggiornaTotale(id) {
     if (!totaleField) return;
 
     const { totale } = calcolaImporti(imponibile, pIva, pOneri);
-    totaleField.value = totale.toFixed(2);
-}
-
-function calcolaTotale(id) {
-    aggiornaTotale(id);
+    totaleField.value = `€ ${formatEuro(totale)}`;
 }
 
 function getDatiOfferta(id) {
@@ -186,7 +196,7 @@ function getDatiOfferta(id) {
     const imponibile = getValoreNumerico($('.imponibile', box));
     const { totale } = calcolaImporti(imponibile, pIva, pOneri);
 
-    const dato = {
+    return {
         id,
         titolo: isProfessionista() ? ($('.titolo', box)?.value || '') : 'La ditta',
         nomeCaps: nomeRaw.toUpperCase(),
@@ -195,11 +205,6 @@ function getDatiOfferta(id) {
         pOneri,
         totale
     };
-
-    const totaleField = $('.totale', box);
-    if (totaleField) totaleField.value = totale.toFixed(2);
-
-    return dato;
 }
 
 function getSoggetto(dato) {
@@ -215,16 +220,6 @@ function formatImportoOfferta(dato, { compresa = false } = {}) {
         : '';
 
     return `€ ${formatEuro(dato.imponibile)} ${suffisso} pari a € ${formatEuro(dato.totale)}${ivaCompresa}`;
-}
-
-function generaSingola(id) {
-    const dato = getDatiOfferta(id);
-    if (!dato) return;
-
-    const descrizione = `${getSoggetto(dato)} ha presentato regolare offerta per un importo di ${formatImportoOfferta(dato)}.`;
-    const output = document.getElementById(`output-singolo-${id}`);
-
-    if (output) output.value = descrizione;
 }
 
 function getOfferteValide() {
@@ -245,23 +240,23 @@ function generaParagrafoRiallineamento(secondaOfferta, scostamento) {
     const importo = formatImportoOfferta(secondaOfferta, { compresa: true });
     const confronto = scostamento > SOGLIA_RIALLINEAMENTO
         ? 'superiore al 5% rispetto alla migliore offerta non si ritiene di dover procedere ad una richiesta di riallineamento.'
-        : 'inferiore al 5% rispetto alla migliore offerta si ritiene di dover procedere ad una richiesta di riallineamento.';
+        : 'non superiore al 5% rispetto alla migliore offerta si ritiene di dover procedere ad una richiesta di riallineamento.';
 
-    return `avendo la seconda offerta (${soggetto} offerta per un importo di ${importo}) uno scostamento rispetto alla prima offerta ${confronto}\n`;
+    return `avendo la seconda offerta (${soggetto} offerta per un importo di ${importo}) uno scostamento rispetto alla prima offerta ${confronto}`;
 }
 
 function generaParagrafoComputo(computoUfficio, miglioreOfferta) {
     const differenzaAssoluta = Math.abs(computoUfficio - miglioreOfferta.imponibile);
 
     if (differenzaAssoluta < SOGLIA_ALLINEAMENTO) {
-        return `Si segnala che la miglior offerta è risultata essere allineata al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+        return `Si segnala che la miglior offerta è risultata essere allineata al computo di ufficio pari a € ${formatEuro(computoUfficio)}.`;
     }
 
     const scostamentoPercentuale = ((computoUfficio - miglioreOfferta.imponibile) / computoUfficio) * 100;
     const valoreAssolutoPerc = Math.abs(Math.round(scostamentoPercentuale));
     const direzione = scostamentoPercentuale >= 0 ? 'in meno' : 'superiore';
 
-    return `Si segnala che la miglior offerta presenta uno scostamento di circa il ${valoreAssolutoPerc}% ${direzione} rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.\n`;
+    return `Si segnala che la miglior offerta presenta uno scostamento di circa il ${valoreAssolutoPerc}% ${direzione} rispetto al computo di ufficio pari a € ${formatEuro(computoUfficio)}.`;
 }
 
 function generaParagrafoAssegnazione(miglioreOfferta, scostamento) {
@@ -270,23 +265,11 @@ function generaParagrafoAssegnazione(miglioreOfferta, scostamento) {
     return `Si ritiene pertanto opportuno di assegnare l'attività ${getSoggetto(miglioreOfferta)} che ha presentato offerta per un importo di ${formatImportoOfferta(miglioreOfferta)}.`;
 }
 
-function generaVerbale() {
-    const computoUfficio = getValoreNumerico($('#computo-ufficio'));
-    const dati = getOfferteValide();
+function generaTestoVerbale(dati, computoUfficio) {
+    if (dati.length < 2 || computoUfficio <= 0) return '';
 
-    if (dati.length < 2) {
-        alert('Inserisci almeno 2 soggetti.');
-        return;
-    }
-
-    if (computoUfficio <= 0) {
-        alert('Inserisci il valore del computo di ufficio.');
-        return;
-    }
-
-    dati.sort((a, b) => a.imponibile - b.imponibile);
-
-    const [miglioreOfferta, secondaOfferta] = dati;
+    const ordinati = [...dati].sort((a, b) => a.imponibile - b.imponibile);
+    const [miglioreOfferta, secondaOfferta] = ordinati;
     const scostamento = calcolaScostamento(miglioreOfferta.imponibile, secondaOfferta.imponibile);
 
     const paragrafi = [
@@ -297,38 +280,162 @@ function generaVerbale() {
         generaParagrafoAssegnazione(miglioreOfferta, scostamento)
     ].filter(Boolean);
 
-    const testo = paragrafi.join('\n');
-    const output = $('#output-testo-confronto');
-    const risultato = $('#risultato-finale');
+    return paragrafi.join('\n\n');
+}
 
-    if (output) output.value = testo;
-    if (risultato) {
-        risultato.classList.remove('hidden');
-        risultato.scrollIntoView({ behavior: 'smooth', block: 'start' });
+function aggiornaContatorePartecipanti(numero) {
+    const elemento = $('#participants-count');
+    if (!elemento) return;
+    elemento.textContent = `${numero} ${numero === 1 ? 'partecipante' : 'partecipanti'}`;
+}
+
+function escapeHtml(testo) {
+    return testo
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+function creaRiepilogoOfferta(dato, posizione) {
+    const migliore = posizione === 1;
+    const seconda = posizione === 2;
+    const classe = migliore ? 'offer-best' : seconda ? 'offer-second' : '';
+    const etichetta = migliore ? 'Migliore offerta' : seconda ? 'Seconda offerta' : `Offerta ${posizione}`;
+
+    return `
+        <div class="preview-offer ${classe}">
+            <div class="preview-offer-rank">${migliore ? '🏆' : seconda ? '🥈' : posizione}</div>
+            <div class="preview-offer-content">
+                <strong>${escapeHtml(getSoggetto(dato))}</strong>
+                <span>${escapeHtml(etichetta)}</span>
+                <small>Imponibile: € ${formatEuro(dato.imponibile)} · Totale: € ${formatEuro(dato.totale)}</small>
+            </div>
+        </div>
+    `;
+}
+
+function renderAnteprima(dati, computoUfficio) {
+    const preview = $('#verbale-preview');
+    if (!preview) return;
+
+    aggiornaContatorePartecipanti($$('.offerta-box').length);
+
+    if (dati.length === 0) {
+        preview.innerHTML = `
+            <div class="preview-empty">
+                <div class="empty-icon">✦</div>
+                <strong>Inizia inserendo i dati</strong>
+                <span>L'anteprima del verbale comparirà qui automaticamente.</span>
+            </div>
+        `;
+        return;
+    }
+
+    const ordinati = [...dati].sort((a, b) => a.imponibile - b.imponibile);
+    const testo = generaTestoVerbale(dati, computoUfficio);
+    const computoValido = computoUfficio > 0;
+
+    const stato = dati.length < 2
+        ? 'Inserisci almeno un altro partecipante per completare il verbale.'
+        : !computoValido
+            ? 'Inserisci il computo di ufficio per completare il verbale.'
+            : 'Verbale aggiornato in tempo reale.';
+
+    const testoPreview = testo || `Dati acquisiti per ${dati.length} partecipant${dati.length === 1 ? 'e' : 'i'}. ${stato}`;
+
+    preview.innerHTML = `
+        <div class="preview-document">
+            <div class="document-eyebrow">VERBALE DI GARA</div>
+            <div class="document-status">${escapeHtml(stato)}</div>
+            <div class="document-body">
+                ${escapeHtml(testoPreview).split('\n\n').map((paragrafo) => `<p>${paragrafo.replaceAll('\n', '<br>')}</p>`).join('')}
+            </div>
+
+            <div class="preview-divider"></div>
+            <div class="preview-section-title">Classifica offerte</div>
+            <div class="preview-offers">
+                ${ordinati.map((dato, index) => creaRiepilogoOfferta(dato, index + 1)).join('')}
+            </div>
+
+            ${computoValido ? `
+                <div class="preview-computo">
+                    <span>Computo di ufficio</span>
+                    <strong>€ ${formatEuro(computoUfficio)}</strong>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function aggiornaVerbaleLive() {
+    const dati = getOfferteValide();
+    const computoUfficio = getValoreNumerico($('#computo-ufficio'));
+    const testo = generaTestoVerbale(dati, computoUfficio);
+    const copia = $('[data-action="copia-finale"]');
+
+    renderAnteprima(dati, computoUfficio);
+
+    if (copia) {
+        copia.disabled = !testo;
+        copia.setAttribute('aria-disabled', String(!testo));
     }
 }
 
-async function copiaTesto(id) {
-    const elemento = document.getElementById(id);
-    if (!elemento?.value) return;
+async function copiaVerbale() {
+    const dati = getOfferteValide();
+    const computoUfficio = getValoreNumerico($('#computo-ufficio'));
+    const testo = generaTestoVerbale(dati, computoUfficio);
+
+    if (!testo) return;
 
     try {
-        await navigator.clipboard.writeText(elemento.value);
+        await navigator.clipboard.writeText(testo);
     } catch {
-        elemento.focus();
-        elemento.select();
+        const textarea = document.createElement('textarea');
+        textarea.value = testo;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
         document.execCommand('copy');
+        textarea.remove();
     }
 
-    alert('Copiato!');
+    const button = $('[data-action="copia-finale"]');
+    if (button) {
+        const testoOriginale = button.innerHTML;
+        button.innerHTML = '<span aria-hidden="true">✓</span> Verbale copiato';
+        button.classList.add('copied');
+        setTimeout(() => {
+            button.innerHTML = testoOriginale;
+            button.classList.remove('copied');
+        }, 1800);
+    }
 }
 
 function gestisciInput(evento) {
-    const campo = evento.target.closest('.imponibile, .perc-iva, .perc-oneri');
-    if (!campo) return;
+    const campo = evento.target;
+    if (campo.matches('.imponibile, .perc-iva, .perc-oneri')) {
+        const box = campo.closest('.offerta-box');
+        if (box) aggiornaTotale(Number(box.id.replace('box-', '')));
+    }
 
-    const box = campo.closest('.offerta-box');
-    if (box) aggiornaTotale(Number(box.id.replace('box-', '')));
+    if (campo.matches('.nome, .imponibile, .perc-iva, .perc-oneri, #computo-ufficio')) {
+        aggiornaVerbaleLive();
+    }
+}
+
+function gestisciChange(evento) {
+    if (evento.target.matches('.titolo, #tipo-globale')) {
+        if (evento.target.id === 'tipo-globale') {
+            aggiornaTabTipo(evento.target.value);
+        } else {
+            aggiornaVerbaleLive();
+        }
+    }
 }
 
 function gestisciClick(evento) {
@@ -341,29 +448,27 @@ function gestisciClick(evento) {
     const pulsante = evento.target.closest('[data-action]');
     if (!pulsante) return;
 
-    const id = Number(pulsante.dataset.id);
     const action = pulsante.dataset.action;
 
     if (action === 'aggiungi-partecipante') aggiungiPartecipante();
-    if (action === 'genera-singola') generaSingola(id);
-    if (action === 'copia-singola') copiaTesto(`output-singolo-${id}`);
-    if (action === 'genera-verbale') generaVerbale();
-    if (action === 'copia-finale') copiaTesto('output-testo-confronto');
+    if (action === 'copia-finale') copiaVerbale();
 }
 
 function inizializza() {
     renderOfferte();
 
     const tipoGlobale = $('#tipo-globale');
-    if (tipoGlobale) tipoGlobale.addEventListener('change', aggiornaVisibilitaInterfaccia);
+    if (tipoGlobale) tipoGlobale.addEventListener('change', gestisciChange);
 
     document.addEventListener('input', gestisciInput);
+    document.addEventListener('change', gestisciChange);
     document.addEventListener('click', gestisciClick);
 
     aggiornaTabTipo(getTipoGlobale() || 'La ditta');
     $$('.offerta-box').forEach((box) => {
         aggiornaTotale(Number(box.id.replace('box-', '')));
     });
+    aggiornaVerbaleLive();
 }
 
 if (document.readyState === 'loading') {
