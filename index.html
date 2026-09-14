@@ -7,87 +7,36 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <main class="container">
+        <h1>Verbali GarApp</h1>
 
-<div class="container">
-    <h1>Verbali GarApp</h1>
-    
-    <div class="header-settings">
-        <div class="header-row">
-            <div class="field">
-                <label style="color: white;">TIPO PARTECIPANTI:</label>
-                <select id="tipo-globale" onchange="toggleInterfaccia()">
-                    <option value="La ditta">Gara tra Aziende</option>
-                    <option value="Il professionista">Gara tra Professionisti</option>
-                </select>
-            </div>
-            <div class="field">
-                <label style="color: white;">Computo di Ufficio (€ Totale)</label>
-                <input type="number" id="computo-ufficio" step="0.01" placeholder="Importo IVA escl.">
-            </div>
-        </div>
-    </div>
-
-    <div id="offerte-list">
-        <script>
-            for(let i=1; i<=3; i++) {
-                document.write(`
-                <div class="offerta-box" id="box-${i}">
-                    <span class="badge">Soggetto ${i}</span>
-                    <div class="row">
-                        <div class="field titolo-field" id="titolo-container-${i}" style="display:none; flex: 0 0 150px;">
-                            <label>Titolo</label>
-                            <select class="titolo">
-                                <option value="L'Arch.">L'Arch.</option>
-                                <option value="L'Ing.">L'Ing.</option>
-                                <option value="Lo Studio">Lo Studio</option>
-                            </select>
-                        </div>
-                        <div class="field">
-                            <label>Nome / Ragione Sociale</label>
-                            <input type="text" class="nome" placeholder="Inserire nome..." style="text-transform: uppercase;">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="field">
-                            <label>Imponibile (€)</label>
-                            <input type="number" step="0.01" class="imponibile" oninput="calcolaTotale(${i})" placeholder="0.00">
-                        </div>
-                        <div class="calc-group">
-                            <div class="field" id="oneri-container-${i}" style="display:none;">
-                                <label>Oneri (%)</label>
-                                <input type="number" class="perc-oneri" value="4" oninput="calcolaTotale(${i})">
-                            </div>
-                            <div class="field">
-                                <label>IVA (%)</label>
-                                <input type="number" class="perc-iva" value="22" oninput="calcolaTotale(${i})">
-                            </div>
-                        </div>
-                        <div class="field totale-field">
-                            <label>Totale Calcolato (€)</label>
-                            <input type="number" step="0.01" class="totale" readonly placeholder="0.00">
-                        </div>
-                    </div>
-                    <div class="btn-group-singolo">
-                        <button class="btn-small" onclick="generaSingola(${i})">Genera descrizione</button>
-                        <button class="btn-small btn-copy-mini" onclick="copiaTesto('output-singolo-${i}')">Copia testo</button>
-                    </div>
-                    <textarea id="output-singolo-${i}" class="output-singolo" placeholder="La descrizione apparirà qui..."></textarea>
+        <section class="header-settings" aria-label="Impostazioni gara">
+            <div class="header-row">
+                <div class="field">
+                    <label for="tipo-globale">Tipo partecipanti:</label>
+                    <select id="tipo-globale">
+                        <option value="La ditta">Gara tra Aziende</option>
+                        <option value="Il professionista">Gara tra Professionisti</option>
+                    </select>
                 </div>
-                `);
-            }
-        </script>
-    </div>
+                <div class="field">
+                    <label for="computo-ufficio">Computo di Ufficio (€ Totale)</label>
+                    <input type="number" id="computo-ufficio" min="0" step="0.01" placeholder="Importo IVA escl." inputmode="decimal">
+                </div>
+            </div>
+        </section>
 
-    <button class="btn-generate" onclick="generaVerbale()">Genera Verbale Finale</button>
+        <section id="offerte-list" aria-label="Offerte"></section>
 
-    <div id="risultato-finale" style="display:none;">
-        <h3 style="color: #65676b; font-size: 14px; text-transform: uppercase;">Verbale Conclusivo:</h3>
-        <textarea id="output-testo-confronto" class="testo-finale"></textarea>
-        <button class="copy-btn-main" onclick="copiaTesto('output-testo-confronto')">Copia Verbale negli appunti</button>
-    </div>
-</div>
+        <button type="button" class="btn-generate" data-action="genera-verbale">Genera Verbale Finale</button>
 
-<script src="script.js"></script>
+        <section id="risultato-finale" class="hidden" aria-label="Verbale conclusivo">
+            <h3>Verbale Conclusivo:</h3>
+            <textarea id="output-testo-confronto" class="testo-finale" aria-label="Testo del verbale conclusivo"></textarea>
+            <button type="button" class="copy-btn-main" data-action="copia-finale">Copia Verbale negli appunti</button>
+        </section>
+    </main>
 
+    <script src="script.js"></script>
 </body>
 </html>
