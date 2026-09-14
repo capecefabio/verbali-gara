@@ -101,7 +101,7 @@ function renderOfferte() {
                     <button type="button" class="btn-small" data-action="genera-singola" data-id="${id}">Genera descrizione</button>
                     <button type="button" class="btn-small btn-copy-mini" data-action="copia-singola" data-id="${id}">Copia testo</button>
                 </div>
-                <textarea id="output-singolo-${id}" class="output-singolo" placeholder="La descrizione apparirà qui..." readonly></textarea>
+                <textarea id="output-singolo-${id}" class="output-singolo" placeholder="La descrizione apparirà qui..."></textarea>
             </div>
         `;
     }).join('');
@@ -136,10 +136,6 @@ function aggiornaTotale(id) {
 
     const { totale } = calcolaImporti(imponibile, pIva, pOneri);
     totaleField.value = totale.toFixed(2);
-}
-
-function calcolaTotale(id) {
-    aggiornaTotale(id);
 }
 
 function getDatiOfferta(id) {
@@ -210,7 +206,7 @@ function generaParagrafoRiallineamento(secondaOfferta, scostamento) {
     const importo = formatImportoOfferta(secondaOfferta, { compresa: true });
     const confronto = scostamento > SOGLIA_RIALLINEAMENTO
         ? 'superiore al 5% rispetto alla migliore offerta non si ritiene di dover procedere ad una richiesta di riallineamento.'
-        : 'inferiore al 5% rispetto alla migliore offerta si ritiene di dover procedere ad una richiesta di riallineamento.';
+        : 'non superiore al 5% rispetto alla migliore offerta si ritiene di dover procedere ad una richiesta di riallineamento.';
 
     return `avendo la seconda offerta (${soggetto} offerta per un importo di ${importo}) uno scostamento rispetto alla prima offerta ${confronto}\n`;
 }
@@ -262,11 +258,10 @@ function generaVerbale() {
         generaParagrafoAssegnazione(miglioreOfferta, scostamento)
     ].filter(Boolean);
 
-    const testo = paragrafi.join('\n');
     const output = $('#output-testo-confronto');
     const risultato = $('#risultato-finale');
 
-    if (output) output.value = testo;
+    if (output) output.value = paragrafi.join('\n');
     if (risultato) {
         risultato.classList.remove('hidden');
         risultato.scrollIntoView({ behavior: 'smooth', block: 'start' });
