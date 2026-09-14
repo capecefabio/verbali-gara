@@ -101,6 +101,10 @@ label {
     text-transform: uppercase;
 }
 
+.header-settings label {
+    color: #ffffff;
+}
+
 input,
 select,
 textarea {
@@ -114,6 +118,10 @@ select {
     border: 1px solid #dddfe2;
     border-radius: 8px;
     font-size: 14px;
+}
+
+.nome {
+    text-transform: uppercase;
 }
 
 input[type="number"] {
