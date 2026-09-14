@@ -111,6 +111,19 @@ function renderOfferte() {
     ).join('');
 }
 
+function aggiornaTabTipo(tipo) {
+    const tipoGlobale = $('#tipo-globale');
+    if (tipoGlobale) tipoGlobale.value = tipo;
+
+    $$('.segment').forEach((segmento) => {
+        const attivo = segmento.dataset.tipo === tipo;
+        segmento.classList.toggle('active', attivo);
+        segmento.setAttribute('aria-selected', String(attivo));
+    });
+
+    aggiornaVisibilitaInterfaccia();
+}
+
 function aggiungiPartecipante() {
     const container = $('#offerte-list');
     if (!container) return;
@@ -319,6 +332,12 @@ function gestisciInput(evento) {
 }
 
 function gestisciClick(evento) {
+    const segmento = evento.target.closest('.segment');
+    if (segmento) {
+        aggiornaTabTipo(segmento.dataset.tipo);
+        return;
+    }
+
     const pulsante = evento.target.closest('[data-action]');
     if (!pulsante) return;
 
@@ -341,7 +360,7 @@ function inizializza() {
     document.addEventListener('input', gestisciInput);
     document.addEventListener('click', gestisciClick);
 
-    aggiornaVisibilitaInterfaccia();
+    aggiornaTabTipo(getTipoGlobale() || 'La ditta');
     $$('.offerta-box').forEach((box) => {
         aggiornaTotale(Number(box.id.replace('box-', '')));
     });
