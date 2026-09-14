@@ -161,7 +161,8 @@ input[type="number"]::-webkit-outer-spin-button {
 
 .btn-small,
 .btn-generate,
-.copy-btn-main {
+.copy-btn-main,
+.btn-add-participant {
     border: none;
     color: #ffffff;
     cursor: pointer;
@@ -188,6 +189,37 @@ input[type="number"]::-webkit-outer-spin-button {
 .btn-copy-mini:hover,
 .copy-btn-main:hover {
     background-color: #218838;
+}
+
+.add-participant-container {
+    display: flex;
+    justify-content: center;
+    margin: -5px 0 25px;
+}
+
+.btn-add-participant {
+    padding: 11px 22px;
+    background-color: #007aff;
+    border: 1px solid #007aff;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-add-participant:hover {
+    background-color: #0056b3;
+}
+
+.btn-add-participant:active {
+    transform: translateY(1px);
+}
+
+.btn-add-participant span {
+    display: inline-block;
+    margin-right: 5px;
+    font-size: 18px;
+    line-height: 12px;
+    vertical-align: -1px;
 }
 
 .output-singolo {
@@ -277,5 +309,9 @@ input[type="number"]::-webkit-outer-spin-button {
     .btn-group-singolo {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .btn-add-participant {
+        width: 100%;
     }
 }
