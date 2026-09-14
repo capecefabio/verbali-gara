@@ -3,50 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#edf4ff">
     <title>Verbali GarApp</title>
-    <link rel="stylesheet" href="style.css?v=20260914-2">
+    <link rel="stylesheet" href="style.css?v=20260914-3">
 </head>
 <body>
-    <main class="container">
-        <h1>Verbali GarApp</h1>
+    <main class="app-shell">
+        <header class="app-header">
+            <div class="brand-lockup">
+                <div class="brand-icon" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                </div>
+                <div>
+                    <div class="brand-title">Verbali GarApp</div>
+                    <div class="brand-subtitle">Genera verbali di gara in pochi clic</div>
+                </div>
+            </div>
+            <div class="header-status" aria-label="Stato applicazione">
+                <span class="status-dot" aria-hidden="true"></span>
+                <span>Pronto</span>
+            </div>
+        </header>
 
-        <section class="header-settings" aria-label="Impostazioni gara">
-            <div class="header-row">
-                <div class="field">
-                    <label>Tipo partecipanti</label>
+        <div class="workspace">
+            <section class="editor-column" aria-label="Dati gara">
+                <section class="glass-card settings-card" aria-label="Impostazioni gara">
+                    <div class="section-heading">
+                        <div class="section-icon" aria-hidden="true">⚙</div>
+                        <div>
+                            <h2>Tipo di gara</h2>
+                            <p>Scegli il tipo di partecipanti</p>
+                        </div>
+                    </div>
+
                     <div class="segmented-control" role="tablist" aria-label="Tipo partecipanti">
-                        <button type="button" class="segment active" role="tab" aria-selected="true" data-tipo="La ditta">Gara tra Aziende</button>
-                        <button type="button" class="segment" role="tab" aria-selected="false" data-tipo="Il professionista">Gara tra Professionisti</button>
+                        <button type="button" class="segment active" role="tab" aria-selected="true" data-tipo="La ditta">▦ &nbsp; Gara tra Aziende</button>
+                        <button type="button" class="segment" role="tab" aria-selected="false" data-tipo="Il professionista">♙ &nbsp; Gara tra Professionisti</button>
                     </div>
                     <select id="tipo-globale" class="visually-hidden" aria-hidden="true" tabindex="-1">
                         <option value="La ditta">Gara tra Aziende</option>
                         <option value="Il professionista">Gara tra Professionisti</option>
                     </select>
-                </div>
-                <div class="field">
-                    <label for="computo-ufficio">Computo di Ufficio (€ Totale)</label>
-                    <input type="number" id="computo-ufficio" min="0" step="0.01" placeholder="Importo IVA escl." inputmode="decimal">
-                </div>
-            </div>
-        </section>
 
-        <section id="offerte-list" aria-label="Offerte"></section>
+                    <div class="office-budget field">
+                        <label for="computo-ufficio">Computo di Ufficio</label>
+                        <div class="input-with-prefix">
+                            <span>€</span>
+                            <input type="number" id="computo-ufficio" min="0" step="0.01" placeholder="Importo IVA escl." inputmode="decimal">
+                        </div>
+                    </div>
+                </section>
 
-        <div class="add-participant-container">
-            <button type="button" class="btn-add-participant" data-action="aggiungi-partecipante" aria-label="Aggiungi partecipante">
-                <span aria-hidden="true">+</span> Aggiungi partecipante
-            </button>
+                <section class="participants-section" aria-label="Partecipanti">
+                    <div class="section-heading participants-heading">
+                        <div class="section-icon blue-icon" aria-hidden="true">♙</div>
+                        <div>
+                            <h2>Partecipanti</h2>
+                            <p id="participants-count">3 partecipanti</p>
+                        </div>
+                    </div>
+                    <div id="offerte-list"></div>
+                </section>
+
+                <div class="add-participant-container">
+                    <button type="button" class="btn-add-participant" data-action="aggiungi-partecipante">
+                        <span aria-hidden="true">＋</span> Aggiungi partecipante
+                    </button>
+                </div>
+            </section>
+
+            <aside class="preview-column" aria-label="Anteprima verbale">
+                <section id="risultato-finale" class="glass-card preview-card">
+                    <div class="preview-header">
+                        <div class="section-heading">
+                            <div class="section-icon document-icon" aria-hidden="true">▤</div>
+                            <div>
+                                <h2>Anteprima Verbale</h2>
+                                <p>Il testo si aggiorna automaticamente</p>
+                            </div>
+                        </div>
+                        <span class="live-pill"><span></span> LIVE</span>
+                    </div>
+
+                    <div id="verbale-preview" class="verbale-preview" aria-live="polite">
+                        <div class="preview-empty">
+                            <div class="empty-icon">✦</div>
+                            <strong>Inizia inserendo i dati</strong>
+                            <span>L'anteprima del verbale comparirà qui automaticamente.</span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="copy-btn-main" data-action="copia-finale">
+                        <span aria-hidden="true">▣</span> Copia verbale negli appunti
+                    </button>
+                </section>
+            </aside>
         </div>
-
-        <button type="button" class="btn-generate" data-action="genera-verbale">Genera Verbale Finale</button>
-
-        <section id="risultato-finale" class="hidden" aria-label="Verbale conclusivo">
-            <h3>Verbale Conclusivo:</h3>
-            <textarea id="output-testo-confronto" class="testo-finale" aria-label="Testo del verbale conclusivo"></textarea>
-            <button type="button" class="copy-btn-main" data-action="copia-finale">Copia Verbale negli appunti</button>
-        </section>
     </main>
 
-    <script src="script.js?v=20260914-2"></script>
+    <script src="script.js?v=20260914-3"></script>
 </body>
 </html>
