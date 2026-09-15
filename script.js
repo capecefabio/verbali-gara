@@ -135,6 +135,34 @@ function aggiornaTabTipo(tipo) {
     aggiornaVerbaleLive();
 }
 
+function mostraApp(tipo) {
+    aggiornaTabTipo(tipo);
+
+    const welcome = $('#welcome-screen');
+    const app = $('#app-shell');
+
+    if (welcome) welcome.hidden = true;
+    if (app) app.hidden = false;
+
+    requestAnimationFrame(() => {
+        app?.classList.add('app-enter');
+        $('#computo-ufficio')?.focus({ preventScroll: true });
+    });
+}
+
+function mostraWelcome() {
+    const welcome = $('#welcome-screen');
+    const app = $('#app-shell');
+
+    if (app) app.hidden = true;
+    if (welcome) welcome.hidden = false;
+
+    requestAnimationFrame(() => {
+        welcome?.classList.add('welcome-enter');
+        $('.type-card')?.focus({ preventScroll: true });
+    });
+}
+
 function aggiungiPartecipante() {
     const container = $('#offerte-list');
     if (!container) return;
@@ -449,6 +477,16 @@ function gestisciClick(evento) {
     if (!pulsante) return;
 
     const action = pulsante.dataset.action;
+
+    if (action === 'scegli-tipo') {
+        mostraApp(pulsante.dataset.tipo);
+        return;
+    }
+
+    if (action === 'cambia-tipo') {
+        mostraWelcome();
+        return;
+    }
 
     if (action === 'aggiungi-partecipante') aggiungiPartecipante();
     if (action === 'copia-finale') copiaVerbale();
