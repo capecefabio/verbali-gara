@@ -6,10 +6,55 @@
     <meta name="theme-color" content="#e8f4ef">
     <title>Verbali GarApp</title>
     <link rel="stylesheet" href="style.css?v=20260914-3">
-    <link rel="stylesheet" href="theme-intesa.css?v=20260915-1">
+    <link rel="stylesheet" href="theme-intesa.css?v=20260915-2">
 </head>
 <body>
-    <main class="app-shell">
+    <main class="welcome-screen" id="welcome-screen">
+        <div class="welcome-content">
+            <div class="welcome-brand">
+                <div class="brand-icon" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                </div>
+                <div class="brand-title">Verbali GarApp</div>
+            </div>
+
+            <div class="welcome-copy">
+                <div class="welcome-eyebrow">WORKSPACE</div>
+                <h1>Genera verbali di gara<br><span>in pochi clic.</span></h1>
+                <p>Inserisci le offerte e visualizza il verbale in tempo reale.</p>
+            </div>
+
+            <div class="welcome-choice" aria-labelledby="welcome-question">
+                <h2 id="welcome-question">Che tipo di gara vuoi creare?</h2>
+                <div class="type-cards">
+                    <button type="button" class="type-card" data-action="scegli-tipo" data-tipo="La ditta">
+                        <span class="type-card-icon" aria-hidden="true">▦</span>
+                        <span class="type-card-content">
+                            <strong>Impresa</strong>
+                            <small>Gara tra aziende</small>
+                        </span>
+                        <span class="type-card-arrow" aria-hidden="true">→</span>
+                    </button>
+
+                    <button type="button" class="type-card" data-action="scegli-tipo" data-tipo="Il professionista">
+                        <span class="type-card-icon" aria-hidden="true">♙</span>
+                        <span class="type-card-content">
+                            <strong>Professionisti</strong>
+                            <small>Gara tra professionisti</small>
+                        </span>
+                        <span class="type-card-arrow" aria-hidden="true">→</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="welcome-footer">
+                <span class="status-dot" aria-hidden="true"></span>
+                Pronto per iniziare
+            </div>
+        </div>
+    </main>
+
+    <main class="app-shell" id="app-shell" hidden>
         <header class="app-header">
             <div class="brand-lockup">
                 <div class="brand-icon" aria-hidden="true">
@@ -20,9 +65,12 @@
                     <div class="brand-subtitle">Genera verbali di gara in pochi clic</div>
                 </div>
             </div>
-            <div class="header-status" aria-label="Stato applicazione">
-                <span class="status-dot" aria-hidden="true"></span>
-                <span>Pronto</span>
+            <div class="header-actions">
+                <button type="button" class="change-type-btn" data-action="cambia-tipo">Cambia tipo</button>
+                <div class="header-status" aria-label="Stato applicazione">
+                    <span class="status-dot" aria-hidden="true"></span>
+                    <span>Pronto</span>
+                </div>
             </div>
         </header>
 
@@ -102,6 +150,6 @@
         </div>
     </main>
 
-    <script src="script.js?v=20260914-3"></script>
+    <script src="script.js?v=20260915-2"></script>
 </body>
 </html>
