@@ -103,6 +103,13 @@ function creaOffertaMarkup(id) {
                     <input type="text" class="totale" readonly placeholder="€ 0,00">
                 </div>
             </div>
+
+            <div class="single-offer-area">
+                <button type="button" class="btn-single-offer" data-action="genera-singola" data-id="${id}">
+                    Genera descrizione offerta
+                </button>
+                <textarea class="output-singolo" id="output-singolo-${id}" rows="2" readonly placeholder="La descrizione della singola offerta comparirà qui..."></textarea>
+            </div>
         </article>
     `;
 }
@@ -241,21 +248,30 @@ function getSoggetto(dato) {
         : `la ditta ${dato.nomeCaps}`;
 }
 
-function formatImportoOfferta(dato, { compresa = false } = {}) {
+function generaSingola(id) {
+    const dato = getDatiOfferta(id);
+    const output = document.getElementById(`output-singolo-${id}`);
+    if (!output) return;
+
+    if (!dato) {
+        output.value = 'Inserisci il nome del partecipante.';
+        return;
+    }
+
+    if (dato.imponibile === 0) {
+        const nome = isProfessionista()
+            ? `${dato.titolo} ${dato.nomeCaps}`
+            : dato.nomeCaps;
+        output.value = `${nome} non ha presentato offerta.`;
+        return;
+    }
+
     const suffisso = getSuffissoImporto(dato.pIva);
-    const ivaCompresa = compresa && !(isProfessionista() && dato.pIva === 0)
-        ? ' iva compresa'
-        : '';
+    const frase = isProfessionista()
+        ? `${dato.titolo} ${dato.nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(dato.imponibile)} ${suffisso} pari a € ${formatEuro(dato.totale)}.`
+        : `La ditta ${dato.nomeCaps} ha presentato regolare offerta per un importo di € ${formatEuro(dato.imponibile)} ${suffisso} pari a € ${formatEuro(dato.totale)}.`;
 
-    return `€ ${formatEuro(dato.imponibile)} ${suffisso} pari a € ${formatEuro(dato.totale)}${ivaCompresa}`;
-}
-
-function getOfferteValide() {
-    return $$('.offerta-box')
-        .map((box) => Number(box.id.replace('box-', '')))
-        .filter(Number.isFinite)
-        .map((id) => getDatiOfferta(id))
-        .filter(Boolean);
+    output.value = frase;
 }
 
 function calcolaScostamento(primo, secondo) {
@@ -444,6 +460,26 @@ async function copiaVerbale() {
     }
 }
 
+async function copiaDescrizioneSingola(id) {
+    const output = document.getElementById(`output-singolo-${id}`);
+    if (!output?.value) return;
+
+    try {
+        await navigator.clipboard.writeText(output.value);
+    } catch {
+        output.focus();
+        output.select();
+        document.execCommand('copy');
+    }
+
+    const button = document.querySelector(`[data-action="copia-singola"][data-id="${id}"]`);
+    if (button) {
+        const testoOriginale = button.textContent;
+        button.textContent = '✓ Copiata';
+        setTimeout(() => { button.textContent = testoOriginale; }, 1500);
+    }
+}
+
 function gestisciInput(evento) {
     const campo = evento.target;
     if (campo.matches('.imponibile, .perc-iva, .perc-oneri')) {
@@ -488,7 +524,21 @@ function gestisciClick(evento) {
         return;
     }
 
-    if (action === 'aggiungi-partecipante') aggiungiPartecipante();
+    if (action === 'aggiungi-partecipante') {
+        aggiungiPartecipante();
+        return;
+    }
+
+    if (action === 'genera-singola') {
+        generaSingola(Number(pulsante.dataset.id));
+        return;
+    }
+
+    if (action === 'copia-singola') {
+        copiaDescrizioneSingola(Number(pulsante.dataset.id));
+        return;
+    }
+
     if (action === 'copia-finale') copiaVerbale();
 }
 
