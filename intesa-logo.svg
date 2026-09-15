@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 96" role="img" aria-labelledby="title desc">
+  <title id="title">Intesa Sanpaolo</title>
+  <desc id="desc">Logo Intesa Sanpaolo con lettering verde e pittogramma quadrato arancione</desc>
+  <rect width="520" height="96" fill="none"/>
+  <text x="0" y="69" fill="#007a53" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-weight="700" letter-spacing="-2">INTESA</text>
+  <g transform="translate(218 12)">
+    <rect width="72" height="72" rx="1" fill="#f58220"/>
+    <path d="M13 59V47h46v12H13zm5-17V31h36v11H18zm7-17V18h22v7H25z" fill="#fff" opacity=".98"/>
+  </g>
+  <text x="302" y="69" fill="#007a53" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-weight="700" letter-spacing="-2">SANPAOLO</text>
+</svg>
