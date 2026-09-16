@@ -448,6 +448,16 @@ async function copiaVerbale() {
         textarea.remove();
     }
 
+    const ordinati = [...dati].sort((a, b) => a.imponibile - b.imponibile);
+    const miglioreOfferta = ordinati[0];
+    window.dispatchEvent(new CustomEvent('airbid-verbale-copiato', {
+        detail: {
+            testo,
+            miglioreOfferta: miglioreOfferta ? (isProfessionista() ? `${miglioreOfferta.titolo} ${miglioreOfferta.nomeCaps}` : miglioreOfferta.nomeCaps) : '',
+            tipo: getTipoGlobale()
+        }
+    }));
+
     const button = $('[data-action="copia-finale"]');
     if (button) {
         const testoOriginale = button.innerHTML;
