@@ -1,0 +1,51 @@
+/* Centered application header */
+#app-shell .app-header {
+    position: relative;
+}
+
+#app-shell .brand-lockup {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+#app-shell .header-actions {
+    margin-left: auto;
+}
+
+#app-shell .header-actions .change-type-btn {
+    display: none !important;
+}
+
+@media (max-width: 650px) {
+    #app-shell .brand-lockup {
+        left: 50%;
+    }
+
+    #app-shell .product-lockup {
+        display: block;
+        padding-left: 8px;
+    }
+
+    #app-shell .brand-title {
+        font-size: 20px;
+    }
+
+    #app-shell .brand-subtitle {
+        display: none;
+    }
+}
+
+@media (max-width: 460px) {
+    #app-shell .brand-lockup {
+        max-width: calc(100% - 70px);
+    }
+
+    #app-shell .brand-title {
+        font-size: 17px;
+    }
+}
