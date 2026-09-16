@@ -1,4 +1,12 @@
 (() => {
+    // Mantiene la dicitura "La ditta" davanti al nome delle aziende
+    // anche nel verbale finale e nelle descrizioni che usano getSoggetto().
+    window.getSoggetto = function (dato) {
+        return isProfessionista()
+            ? `${dato.titolo} ${dato.nomeCaps}`
+            : `La ditta ${dato.nomeCaps}`;
+    };
+
     function getTuttiPartecipantiNoOfferta() {
         return $$('.offerta-box')
             .map((box) => Number(box.id.replace('box-', '')))
