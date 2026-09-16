@@ -61,15 +61,55 @@
 }
 
 .welcome-copy h1 {
+    position: relative;
     margin: 0;
     color: #15372e;
     font-size: clamp(44px, 6vw, 70px);
     line-height: .98;
     letter-spacing: -.058em;
     font-weight: 760;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: text-shadow .35s ease, filter .35s ease;
 }
 
-.welcome-copy h1 span { color: #007653; }
+.welcome-copy h1::after {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: -14px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(0,118,83,.18), transparent 68%);
+    filter: blur(8px);
+    opacity: 0;
+    transform: scaleX(.65);
+    transition: opacity .35s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+    pointer-events: none;
+}
+
+.welcome-copy h1:hover {
+    text-shadow: 0 10px 28px rgba(0,118,83,.16);
+    filter: saturate(1.08);
+}
+
+.welcome-copy h1:hover::after {
+    opacity: 1;
+    transform: scaleX(1);
+}
+
+.welcome-copy h1 span {
+    position: relative;
+    display: inline-block;
+    color: #007653;
+    transition: transform .45s cubic-bezier(.2,.8,.2,1), letter-spacing .45s ease;
+}
+
+.welcome-copy h1:hover span {
+    transform: translate3d(0,-5px,12px) rotateX(4deg);
+    letter-spacing: -.045em;
+}
 
 .welcome-copy p {
     margin: 20px auto 0;
@@ -116,17 +156,44 @@
     text-align: left;
     font: inherit;
     cursor: pointer;
-    transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, background .22s ease;
+    overflow: hidden;
+    isolation: isolate;
+    transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease, border-color .3s ease, background .3s ease, filter .3s ease;
+}
+
+.type-card::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    z-index: -1;
+    background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.78), transparent 30%);
+    opacity: 0;
+    transition: opacity .25s ease;
+    pointer-events: none;
+}
+
+.type-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(115deg, transparent 25%, rgba(255,255,255,.62) 48%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform .65s cubic-bezier(.2,.7,.2,1);
+    pointer-events: none;
 }
 
 .type-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(0,135,90,.24);
-    background: linear-gradient(145deg,rgba(255,255,255,.82),rgba(233,248,241,.64));
-    box-shadow: 0 24px 48px rgba(43,79,69,.14), inset 0 1px rgba(255,255,255,.98);
+    transform: translateY(-7px) scale(1.015);
+    border-color: rgba(0,135,90,.28);
+    background: linear-gradient(145deg,rgba(255,255,255,.84),rgba(233,248,241,.68));
+    box-shadow: 0 28px 58px rgba(43,79,69,.17), 0 0 0 1px rgba(255,255,255,.7), inset 0 1px rgba(255,255,255,.98);
+    filter: saturate(1.06);
 }
 
-.type-card:active { transform: translateY(-1px) scale(.995); }
+.type-card:hover::before { opacity: 1; }
+.type-card:hover::after { transform: translateX(120%); }
+.type-card:active { transform: translateY(-2px) scale(.995); }
 
 .type-card:focus-visible {
     outline: none;
@@ -144,13 +211,20 @@
     color: white;
     font-size: 22px;
     box-shadow: 0 9px 20px rgba(0,82,61,.18), inset 0 1px rgba(255,255,255,.34);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+}
+
+.type-card:hover .type-card-icon {
+    transform: translateY(-2px) rotate(-3deg) scale(1.06);
+    box-shadow: 0 13px 25px rgba(0,82,61,.24), inset 0 1px rgba(255,255,255,.4);
 }
 
 .type-card-content { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
-.type-card-content strong { font-size: 18px; font-weight: 720; letter-spacing: -.025em; }
+.type-card-content strong { font-size: 18px; font-weight: 720; letter-spacing: -.025em; transition: transform .3s ease; }
 .type-card-content small { color: #70847c; font-size: 13px; }
-.type-card-arrow { justify-self: end; color: #007653; font-size: 22px; opacity: .72; transition: transform .22s ease; }
-.type-card:hover .type-card-arrow { transform: translateX(4px); }
+.type-card:hover .type-card-content strong { transform: translateX(3px); }
+.type-card-arrow { justify-self: end; color: #007653; font-size: 22px; opacity: .72; transition: transform .28s ease, opacity .28s ease; }
+.type-card:hover .type-card-arrow { transform: translateX(7px) scale(1.08); opacity: 1; }
 
 .welcome-footer {
     display: inline-flex;
@@ -187,5 +261,5 @@
 }
 
 @media (prefers-reduced-motion:reduce) {
-    .welcome-content,.type-card,.type-card-arrow { animation:none; transition:none; }
+    .welcome-content,.type-card,.type-card-arrow,.welcome-copy h1,.welcome-copy h1 span,.type-card-icon { animation:none; transition:none; }
 }
