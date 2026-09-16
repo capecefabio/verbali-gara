@@ -60,8 +60,50 @@
         setTimeout(() => { button.innerHTML = old; }, 1400);
     });
 
-    const observer = new MutationObserver(() => { preparaDescrizioniSingole(); aggiornaDescrizioniSingole(); });
+    function initHomeMotion() {
+        const title = document.querySelector('.welcome-copy h1');
+        const cards = document.querySelectorAll('.landing-tool-card');
+        const typeCards = document.querySelectorAll('.type-card');
+        const allCards = [...cards, ...typeCards];
+
+        if (title && !title.dataset.motionReady) {
+            title.dataset.motionReady = 'true';
+            title.addEventListener('pointermove', (event) => {
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                const rect = title.getBoundingClientRect();
+                const x = (event.clientX - rect.left) / rect.width - .5;
+                const y = (event.clientY - rect.top) / rect.height - .5;
+                title.style.transform = `perspective(900px) rotateY(${x * 7}deg) rotateX(${y * -5}deg) translate3d(${x * 5}px, ${y * 4}px, 0)`;
+            });
+            title.addEventListener('pointerleave', () => {
+                title.style.transform = '';
+            });
+        }
+
+        allCards.forEach((card) => {
+            if (card.dataset.motionReady) return;
+            card.dataset.motionReady = 'true';
+            card.addEventListener('pointermove', (event) => {
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                const rect = card.getBoundingClientRect();
+                const x = ((event.clientX - rect.left) / rect.width) * 100;
+                const y = ((event.clientY - rect.top) / rect.height) * 100;
+                card.style.setProperty('--mx', `${x}%`);
+                card.style.setProperty('--my', `${y}%`);
+            });
+            card.addEventListener('pointerleave', () => {
+                card.style.setProperty('--mx', '50%');
+                card.style.setProperty('--my', '50%');
+            });
+        });
+    }
+
+    const observer = new MutationObserver(() => {
+        preparaDescrizioniSingole();
+        aggiornaDescrizioniSingole();
+        initHomeMotion();
+    });
     const list = document.getElementById('offerte-list');
     if (list) observer.observe(list, { childList: true, subtree: true });
-    requestAnimationFrame(() => { preparaDescrizioniSingole(); aggiornaDescrizioniSingole(); });
+    requestAnimationFrame(() => { preparaDescrizioniSingole(); aggiornaDescrizioniSingole(); initHomeMotion(); });
 })();
