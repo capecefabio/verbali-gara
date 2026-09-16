@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="theme-intesa.css?v=20260915-4">
     <link rel="stylesheet" href="landing-fix.css?v=20260916-1">
     <link rel="stylesheet" href="app-header-fix.css?v=20260916-1">
+    <link rel="stylesheet" href="features.css?v=20260916-1">
 </head>
 <body>
     <main class="welcome-screen" id="welcome-screen">
@@ -37,6 +38,20 @@
                     </button>
                 </div>
             </div>
+
+            <div class="landing-tools" aria-label="Strumenti AirBid">
+                <button type="button" class="landing-tool-card" data-action="archivio">
+                    <span class="landing-tool-icon" aria-hidden="true">▤</span>
+                    <span class="landing-tool-content"><strong>Archivio</strong><small>Rivedi i verbali salvati automaticamente.</small></span>
+                    <span class="landing-tool-arrow" aria-hidden="true">→</span>
+                </button>
+                <button type="button" class="landing-tool-card" data-action="generatore-mail">
+                    <span class="landing-tool-icon" aria-hidden="true">✉</span>
+                    <span class="landing-tool-content"><strong>Generatore Mail</strong><small>Prepara la mail di chiusura gara pronta da copiare.</small></span>
+                    <span class="landing-tool-arrow" aria-hidden="true">→</span>
+                </button>
+            </div>
+
             <div class="welcome-footer"><span class="status-dot" aria-hidden="true"></span>Pronto per iniziare</div>
         </div>
     </main>
@@ -102,8 +117,52 @@
             </aside>
         </div>
     </main>
+
+    <main class="feature-screen" id="archive-screen" hidden>
+        <div class="feature-header">
+            <div class="feature-title">
+                <div class="section-icon document-icon" aria-hidden="true">▤</div>
+                <div><h1>Archivio</h1><p id="archive-count">0 verbali salvati</p></div>
+            </div>
+            <button type="button" class="feature-back" data-action="home">← Home</button>
+        </div>
+        <div id="archive-list" class="archive-list"></div>
+    </main>
+
+    <div class="modal-backdrop" id="archive-detail" hidden>
+        <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="archive-detail-title">
+            <header class="modal-header">
+                <div><strong id="archive-detail-title">Verbale di gara</strong><small id="archive-detail-meta"></small></div>
+                <button type="button" class="modal-close" data-action="chiudi-archivio-dettaglio" aria-label="Chiudi">×</button>
+            </header>
+            <pre id="archive-detail-text" class="modal-text"></pre>
+        </section>
+    </div>
+
+    <main class="feature-screen" id="mail-screen" hidden>
+        <div class="feature-header">
+            <div class="feature-title">
+                <div class="section-icon document-icon" aria-hidden="true">✉</div>
+                <div><h1>Generatore Mail</h1><p>Prepara la comunicazione di chiusura gara</p></div>
+            </div>
+            <button type="button" class="feature-back" data-action="home">← Home</button>
+        </div>
+        <section class="mail-form">
+            <label for="mail-ftp-url">URL FTP</label>
+            <input type="url" id="mail-ftp-url" placeholder="ftp://..." autocomplete="url">
+            <div id="mail-status" class="mail-status" aria-live="polite"></div>
+            <div class="mail-actions">
+                <button type="button" class="mail-generate" data-action="genera-mail">✦ Genera Mail</button>
+                <button type="button" class="mail-copy" data-action="copia-mail">▣ Copia mail</button>
+            </div>
+            <textarea id="mail-output" class="mail-output" readonly placeholder="La mail generata comparirà qui..."></textarea>
+        </section>
+    </main>
+
     <script src="script.js?v=20260915-2"></script>
     <script src="no-offer.js?v=20260915-1"></script>
     <script src="ui-polish.js?v=20260915-1"></script>
+    <script src="archive.js?v=20260916-1"></script>
+    <script src="mail-generator.js?v=20260916-1"></script>
 </body>
 </html>
