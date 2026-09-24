@@ -57,7 +57,7 @@ function getSuffissoImporto(pIva, professionista = isProfessionista()) {
 function formatImportoOfferta(dato, options = {}) {
     const compresa = Boolean(options.compresa);
     if (compresa) return `€ ${formatEuro(dato.totale)} iva compresa`;
-    return `€ ${formatEuro(dato.imponibile)} ${getSuffissoImporto(dato.pIva)}`;
+    return `€ ${formatEuro(dato.imponibile)} ${getSuffissoImporto(dato.pIva)} pari a € ${formatEuro(dato.totale)}`;
 }
 
 function creaOffertaMarkup(id) {
