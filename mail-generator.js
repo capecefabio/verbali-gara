@@ -126,9 +126,9 @@
             if (!importo || !Number.isFinite(importoNumero) || importoNumero < 0) { errore('Inserisci l’importo totale disponibile sulla scheda progetto.', 'mail-sigi-importo'); return; }
 
             const fraseCoerenza = coerenza === 'si'
-                ? 'risulta coerente con l’importo totale disponibile sulla scheda progetto pari a Euro'
-                : 'non risulta coerente con l’importo totale disponibile sulla scheda progetto pari a Euro';
-            dettagliGara = `La miglior offerta risulta essere quella di ${nomeMigliore}; ${fraseCoerenza} ${importo}.`;
+                ? 'risulta coerente con l’importo totale disponibile sulla scheda progetto pari a €'
+                : 'non risulta coerente con l’importo totale disponibile sulla scheda progetto pari a €';
+            dettagliGara = `La miglior offerta risulta essere quella di ${nomeMigliore}.\\nL'offerta ${fraseCoerenza} ${importo}.`;
         }
 
         output.value = `Ciao a tutti,\n\ncomunichiamo che l’evento di gara è stato chiuso.\nVerbale apertura buste in allegato.\n\nI documenti si trovano su:\n\n${ftp}\n\n${dettagliGara}\n\nSaluti,`;
