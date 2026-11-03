@@ -83,17 +83,55 @@
         return isProfessionista() ? `${migliore.titolo} ${migliore.nomeCaps}` : migliore.nomeCaps;
     }
 
+    function formatImportoMail(valore) {
+        const numero = Number.parseFloat(valore);
+        return Number.isFinite(numero)
+            ? new Intl.NumberFormat('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(numero)
+            : '';
+    }
+
+    function aggiornaCampiRilancio() {
+        const rilancio = document.getElementById('mail-rilancio')?.value || '';
+        const campi = document.getElementById('mail-no-rilancio-fields');
+        if (campi) campi.hidden = rilancio !== 'no';
+    }
+
     function generaMail() {
         const ftp = document.getElementById('mail-ftp-url')?.value.trim() || '';
+        const rilancio = document.getElementById('mail-rilancio')?.value || '';
         const output = document.getElementById('mail-output');
         const status = document.getElementById('mail-status');
         if (!output) return;
-        if (!ftp) { if (status) status.textContent='Inserisci l’URL FTP per generare la mail.'; document.getElementById('mail-ftp-url')?.focus(); return; }
-        const migliore = trovaMiglioreOfferta();
-        let nomeMigliore = nomePerMail(migliore);
-        if (!nomeMigliore) nomeMigliore = trovaMiglioreArchiviata();
-        if (!nomeMigliore) nomeMigliore = 'quella indicata nel verbale';
-        output.value = `Ciao a tutti,\n\ncomunichiamo che l’evento di gara è stato chiuso.\nVerbale apertura buste in allegato.\n\nI documenti si trovano su:\n\n${ftp}\n\nLa miglior offerta risulta essere quella di ${nomeMigliore}.\n\nSaluti,`;
+
+        const errore = (messaggio, id) => {
+            if (status) status.textContent = messaggio;
+            document.getElementById(id)?.focus();
+        };
+
+        if (!ftp) { errore('Inserisci l’URL FTP per generare la mail.', 'mail-ftp-url'); return; }
+        if (!rilancio) { errore('Seleziona se la gara necessita di rilancio.', 'mail-rilancio'); return; }
+
+        let dettagliGara;
+        if (rilancio === 'si') {
+            dettagliGara = 'La gara necessita di rilancio.';
+        } else {
+            const nomeMigliore = document.getElementById('mail-migliore-offerta')?.value.trim() || '';
+            const coerenza = document.getElementById('mail-sigi-coerente')?.value || '';
+            const importoRaw = document.getElementById('mail-sigi-importo')?.value || '';
+            const importoNumero = Number.parseFloat(importoRaw);
+            const importo = formatImportoMail(importoRaw);
+
+            if (!nomeMigliore) { errore('Indica a chi appartiene la migliore offerta.', 'mail-migliore-offerta'); return; }
+            if (!coerenza) { errore('Seleziona se l’offerta è coerente con l’importo di SIGI.', 'mail-sigi-coerente'); return; }
+            if (!importo || !Number.isFinite(importoNumero) || importoNumero < 0) { errore('Inserisci l’importo totale disponibile sulla scheda progetto.', 'mail-sigi-importo'); return; }
+
+            const fraseCoerenza = coerenza === 'si'
+                ? 'risulta coerente con l’importo totale disponibile sulla scheda progetto pari a Euro'
+                : 'non risulta coerente con l’importo totale disponibile sulla scheda progetto pari a Euro';
+            dettagliGara = `La gara non necessita di rilancio. La miglior offerta risulta essere quella di ${nomeMigliore}; ${fraseCoerenza} ${importo}.`;
+        }
+
+        output.value = `Ciao a tutti,\\n\\ncomunichiamo che l’evento di gara è stato chiuso.\\nVerbale apertura buste in allegato.\\n\\nI documenti si trovano su:\\n\\n${ftp}\\n\\n${dettagliGara}\\n\\nSaluti,`;
         if (status) status.textContent='Mail generata.';
     }
 
@@ -120,7 +158,19 @@
         if (event.target.closest('[data-action="chiudi-archivio-mail"]')) chiudiArchivioMail();
     });
 
-    document.addEventListener('input', event => { if (event.target.id === 'mail-ftp-url') { const status=document.getElementById('mail-status'); if(status) status.textContent=''; } });
+    document.addEventListener('input', event => {
+        if (['mail-ftp-url','mail-migliore-offerta','mail-sigi-importo'].includes(event.target.id)) {
+            const status=document.getElementById('mail-status');
+            if(status) status.textContent='';
+        }
+    });
+    document.addEventListener('change', event => {
+        if (event.target.id === 'mail-rilancio') aggiornaCampiRilancio();
+        if (['mail-rilancio','mail-sigi-coerente'].includes(event.target.id)) {
+            const status=document.getElementById('mail-status');
+            if(status) status.textContent='';
+        }
+    });
     document.addEventListener('keydown', event => { if (event.key === 'Escape') chiudiArchivioMail(); });
     document.addEventListener('DOMContentLoaded', aggiornaContatoreMail);
 })();
