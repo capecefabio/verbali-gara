@@ -131,7 +131,7 @@
             dettagliGara = `La gara non necessita di rilancio. La miglior offerta risulta essere quella di ${nomeMigliore}; ${fraseCoerenza} ${importo}.`;
         }
 
-        output.value = `Ciao a tutti,\\n\\ncomunichiamo che l’evento di gara è stato chiuso.\\nVerbale apertura buste in allegato.\\n\\nI documenti si trovano su:\\n\\n${ftp}\\n\\n${dettagliGara}\\n\\nSaluti,`;
+        output.value = `Ciao a tutti,\n\ncomunichiamo che l’evento di gara è stato chiuso.\nVerbale apertura buste in allegato.\n\nI documenti si trovano su:\n\n${ftp}\n\n${dettagliGara}\n\nSaluti,`;
         if (status) status.textContent='Mail generata.';
     }
 
