@@ -115,12 +115,14 @@
         if (rilancio === 'si') {
             dettagliGara = 'La gara necessita di rilancio.';
         } else {
+            const qualificaMigliore = document.getElementById('mail-migliore-qualifica')?.value || '';
             const nomeMigliore = document.getElementById('mail-migliore-offerta')?.value.trim() || '';
             const coerenza = document.getElementById('mail-sigi-coerente')?.value || '';
             const importoRaw = document.getElementById('mail-sigi-importo')?.value || '';
             const importoNumero = Number.parseFloat(importoRaw);
             const importo = formatImportoMail(importoRaw);
 
+            if (!qualificaMigliore) { errore('Seleziona la tipologia della migliore offerta.', 'mail-migliore-qualifica'); return; }
             if (!nomeMigliore) { errore('Indica a chi appartiene la migliore offerta.', 'mail-migliore-offerta'); return; }
             if (!coerenza) { errore('Seleziona se l’offerta è coerente con l’importo di SIGI.', 'mail-sigi-coerente'); return; }
             if (!importo || !Number.isFinite(importoNumero) || importoNumero < 0) { errore('Inserisci l’importo totale disponibile sulla scheda progetto.', 'mail-sigi-importo'); return; }
@@ -128,7 +130,7 @@
             const fraseCoerenza = coerenza === 'si'
                 ? 'risulta coerente con l’importo totale disponibile sulla scheda progetto pari a €'
                 : 'non risulta coerente con l’importo totale disponibile sulla scheda progetto pari a €';
-            dettagliGara = `La miglior offerta risulta essere quella di ${nomeMigliore}.\\nL'offerta ${fraseCoerenza} ${importo}.`;
+            dettagliGara = `La miglior offerta risulta essere quella ${qualificaMigliore} ${nomeMigliore}.\nL'offerta ${fraseCoerenza} ${importo}.`;
         }
 
         output.value = `Ciao a tutti,\n\ncomunichiamo che l’evento di gara è stato chiuso.\nVerbale apertura buste in allegato.\n\nI documenti si trovano su:\n\n${ftp}\n\n${dettagliGara}\n\nSaluti,`;
